@@ -33,6 +33,10 @@
 #include "alertpanel.h"
 #include "compose.h"
 
+#include "unlha32.h"
+#include "unzip32.h"
+#include "7-zip32.h"
+
 #include <glib/gi18n-lib.h>
 
 static SylPluginInfo info = {
@@ -165,6 +169,8 @@ static GtkToolItem *g_sendbtn = NULL;
 /* original button handler id. */
 static gulong g_sendbtn_id = 0;
 
+typedef DWORD (CALLBACK* GETVERSIONPROC)(void);
+
 static gboolean
 button_press_emission_hook (GSignalInvocationHint	*ihint,
                             guint			n_param_values,
@@ -188,6 +194,17 @@ button_press_emission_hook (GSignalInvocationHint	*ihint,
     
   debug_print("[PLUGIN] button handler id is %ld.\n", g_sendbtn_id);
 
+  LPSTR szOutput;
+  DWORD dwSize;
+  /* UnZip(NULL, " --i .zip [dir name]", szOutput, dwSize);*/
+  HANDLE hdll = LoadLibrary(L"7-zip32");
+  if (hdll != NULL){
+      GETVERSIONPROC hfunc = (GETVERSIONPROC)GetProcAddress(hdll, "SevenZipGetVersion");
+      if (!hfunc){
+      }else{
+          DWORD dwVersion = hfunc();
+      }
+  }
 #if 0
   g_signal_stop_emission(G_OBJECT(g_sendbtn), g_signal_id, 0);
 
