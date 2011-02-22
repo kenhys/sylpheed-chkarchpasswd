@@ -42,6 +42,7 @@
 typedef DWORD (*GETVERSIONPROC)(void);
 typedef BOOL (*CHECKARCHIVE)(LPCSTR szFilename, const int iMode);
 typedef int (*GETARCHIVETYPE)(LPCSTR szFilename);
+typedef HARC (*OPENARCHIVE)(const HWND hWnd, LPCSTR szFilename, const DWORD dwMode);
 
 
 int main(int argc, char *argv[])
@@ -87,6 +88,12 @@ int main(int argc, char *argv[])
               g_print("invalid archive\n");
               break;
           }
+      }
+      OPENARCHIVE hOpenFunc = (OPENARCHIVE)GetProcAddress(hDLL, "SevenZipOpenArchive");
+      if (!hOpenFunc){
+          g_print("404 SevenZipOpenArchive\n");
+      }else{
+          HARC hArch = hOpenFunc(NULL, "passwd.zip", M_ERROR_MESSAGE_ON);
       }
   }
   return 0;
