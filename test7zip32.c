@@ -39,7 +39,9 @@
 
 #include <glib/gi18n-lib.h>
 
-typedef DWORD (CALLBACK* GETVERSIONPROC)(void);
+typedef DWORD (*GETVERSIONPROC)(void);
+typedef BOOL (*CHECKARCHIVE)(LPCSTR szFilename, const int iMode);
+typedef int (*GETARCHIVETYPE)(LPCSTR szFilename);
 
 
 int main(int argc, char *argv[])
@@ -56,6 +58,35 @@ int main(int argc, char *argv[])
           g_print("%08lx\n", dwHi);
           DWORD dwLow = ((dwVersion & 0xffff0000) >>16);
           g_print("%08lx\n", dwLow);
+      }
+      CHECKARCHIVE hChkFunc = (CHECKARCHIVE)GetProcAddress(hDLL, "SevenZipCheckArchive");
+      if (!hChkFunc){
+          g_print("404 SevenZipCheckArchive\n");
+      }else{
+          BOOL bCheck = hChkFunc("passwd.7z", CHECKARCHIVE_BASIC);
+          if (bCheck!=TRUE){
+              g_print("invalid\n");
+          }
+      }
+      GETARCHIVETYPE hArchFunc = (GETARCHIVETYPE)GetProcAddress(hDLL, "SevenZipGetArchiveType");
+      if (!hArchFunc){
+          g_print("404 SevenZipGetArchiveType\n");
+      }else{
+          int nType = hArchFunc("passwd.zip");
+          switch(nType){
+          case 0:
+              g_print("unknown archive\n");
+              break;
+          case 1:
+              g_print("zip archive\n");
+              break;
+          case 2:
+              g_print("7zip archive\n");
+              break;
+          default:
+              g_print("invalid archive\n");
+              break;
+          }
       }
   }
   return 0;
