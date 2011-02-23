@@ -7,7 +7,7 @@ INC=" -I. -I./include -I../../ -I../../libsylph -I../../src "
 INC="$INC `pkg-config --cflags glib-2.0 cairo gdk-2.0 atk `"
 DEF=" -DHAVE_CONFIG_H -DUNICODE -D_UNICODE"
 
-LIBS=" `pkg-config --libs glib-2.0 gobject-2.0 gtk+-2.0` -L./lib -lunzip32 -lunlha32 ./lib/lib7zip32.a"
+LIBS=" `pkg-config --libs glib-2.0 gobject-2.0 gtk+-2.0`"
 
 if [ -z "$1" ]; then
 
@@ -27,7 +27,20 @@ if [ -z "$1" ]; then
 fi
 
 if [ ! -z "$1" ]; then
-    com="gcc -Wall $DEF $INC test7zip32.c -o test7zip32.exe $LIBS"
-    echo $com
-    eval $com
+  case "$1" in
+      zip)
+          LIBS="$LIBS -L./lib -lunzip32 "
+          com="gcc -Wall $DEF $INC testunzip32.c -o testunzip32.exe $LIBS"
+          ;;
+      7z)
+          LIBS="$LIBS -L./lib -lunzip32 -lunlha32 ./lib/lib7zip32.a"
+          com="gcc -Wall $DEF $INC test7zip32.c -o test7zip32.exe $LIBS"
+          ;;
+      lha)
+          LIBS="$LIBS -L./lib -lunzip32 -lunlha32 ./lib/lib7zip32.a"
+          com="gcc -Wall $DEF $INC testlha32.c -o testlha32.exe $LIBS"
+          ;;
+  esac
+  echo $com
+  eval $com
 fi
