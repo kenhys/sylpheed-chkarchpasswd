@@ -126,7 +126,9 @@ int main(int argc, char *argv[])
       GETPROCADDRESS(WINAPI_SEVENZIPGETARCHIVETYPE, hArchTypeFunc, "SevenZipGetArchiveType");
       GETPROCADDRESS(WINAPI_SEVENZIPOPENARCHIVE, hOpenFunc, "SevenZipOpenArchive");
       GETPROCADDRESS(WINAPI_SEVENZIPCLOSEARCHIVE, hCloseFunc, "SevenZipCloseArchive");
-      GETPROCADDRESS(WINAPI_SEVENZIPSETDEFAULTPASSWORD, hSetPasswd, "SevenZipSetDefaultPassword");
+      GETPROCADDRESS(WINAPI_SEVENZIPSETDEFAULTPASSWORD, hSetDefPasswd, "SevenZipSetDefaultPassword");
+      GETPROCADDRESS(WINAPI_SEVENZIPGETFILECOUNT, hFileCount, "SevenZipGetFileCount");
+      GETPROCADDRESS(WINAPI_SEVENZIPGETATTRIBUTE, hAttribute, "SevenZipGetAttribute");
 
       DWORD dwVersion;
       dwVersion = hVersion();
@@ -138,38 +140,66 @@ int main(int argc, char *argv[])
       DWORD dwLow = (dwSubVersion & 0x0000ffff);
       g_print("%08lx\n", dwLow);
 
-      int nResult = hSetPasswd(NULL, "test");
-      if (nResult!=0){
-          g_print("set password error");
-      }
-      BOOL bCheck = hChkFunc("hpasswd.7z", CHECKARCHIVE_BASIC);
-      if (bCheck!=TRUE){
-          g_print("check archive error\n");
-      }
+      BOOL bCheck;
+      int nType;
+      HARC hArch;
+      int nAttr;
 
-      int nType = hArchTypeFunc("hpasswd.7z");
-      switch(nType){
-      case 0:
-          g_print("unknown archive\n");
-          break;
-      case 1:
-          g_print("zip archive\n");
-          break;
-      case 2:
-          g_print("7zip archive\n");
-          break;
-      default:
-          g_print("invalid archive\n");
-          break;
+      {
+          /*
+           * check hpasswd.7z
+           */
+          int nResult = hSetDefPasswd(NULL, "test");
+          hArch = hOpenFunc(NULL, "hpasswd.7z", M_ERROR_MESSAGE_OFF|M_BAR_WINDOW_OFF);
+          if (hArch != NULL){
+              bCheck = hChkFunc("hpasswd.7z", CHECKARCHIVE_BASIC);
+              nType = hArchTypeFunc("hpasswd.7z");
+              nAttr = hAttribute(hArch);
+              /*hArch = hOpenFunc(NULL, "hpasswd.7z", 0);*/
+              g_print("nResult:%08x\n", nResult);
+              g_print("bCheck:%08x\n", bCheck);
+              g_print("nType:%08x\n", nType);
+              g_print("nAttr:%08x\n", nAttr);
+              if (hArch != NULL && (nAttr & 0x40)){
+                  g_print("may be header encrypted\n");
+              }
+              hCloseFunc(hArch);
+          }else{
+              g_print("?\n");
+          }
       }
-
-      HARC hArch = hOpenFunc(NULL, "hpasswd.7z", M_ERROR_MESSAGE_ON);
-      if (hArch==NULL){
-          g_print("open error");
-          return;
+      return 0;
+      {
+          /*
+           * check passwd.7z
+           */
+          bCheck = hChkFunc("passwd.7z", CHECKARCHIVE_BASIC);
+          nType = hArchTypeFunc("passwd.7z");
+          hArch = hOpenFunc(NULL, "passwd.7z", 0);
+          nAttr = hAttribute(hArch);
+          if (bCheck == TRUE && nType == 2 && hArch != NULL && nAttr & 0x40){
+              g_print("passwd.7z password encrypted\n");
+          }
+          hCloseFunc(hArch);
       }
-
-      
+      {
+          /*
+           * check passwd.zip
+           */
+          /*int nResult = hSetPasswd(NULL, "");*/
+          bCheck = hChkFunc("passwd.zip", CHECKARCHIVE_BASIC);
+          nType = hArchTypeFunc("passwd.zip");
+          hArch = hOpenFunc(NULL, "passwd.zip", 0);
+          g_print("hArch:%p\n", hArch);
+          /*nAttr = hAttribute(hArch);*/
+          g_print("bCheck:%08x\n", bCheck);
+          g_print("nType:%08x\n", nType);
+          g_print("nAttr:%08x\n", nAttr);
+          if (bCheck == TRUE && nType == 2 && hArch != NULL && nAttr & 0x40){
+              g_print("passwd.zip password encrypted\n");
+          }
+      }
+      return 0;
   }
   return 0;
 }
