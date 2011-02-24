@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
       g_print("%08x\n", bChk);
       bChk = hChkArch("nopasswd.zip", 1);
       g_print("%08x\n", bChk);
-      HARC hArch = hOpenArch(NULL, "passwd.zip", 0);
+      HARC hArch = hOpenArch(NULL, "nopasswd.zip", 0);
       if (hArch!=NULL){
           g_print("open harc %p\n", hArch);
       }

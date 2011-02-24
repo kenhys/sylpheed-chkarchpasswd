@@ -41,73 +41,73 @@
 #include <glib/gi18n-lib.h>
 
 /* LHA.DLL compatible API */
-typedef int (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
-typedef WORD  (*WINAPI_SEVENZIPGETVERSION)(void);
-typedef BOOL  (*WINAPI_SEVENZIPGETCURSORMODE)(void);
-typedef BOOL  (*WINAPI_SEVENZIPSETCURSORMODE)(const BOOL _CursorMode);
-typedef BOOL  (*WINAPI_SevenZipGetBackGroundMode)(void);
-typedef BOOL  (*WINAPI_SEVENZIPSETBACKGROUNDMODE)(const BOOL _BackGroundMode);
-typedef WORD  (*WINAPI_SEVENZIPGETCURSORINTERVAL)(void);
-typedef BOOL  (*WINAPI_SEVENZIPSETCURSORINTERVAL)(const WORD _Interval);
-typedef BOOL  (*WINAPI_SEVENZIPGETRUNNING)(void);
+typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
+typedef WORD  WINAPI (*WINAPI_SEVENZIPGETVERSION)(void);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETCURSORMODE)(void);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPSETCURSORMODE)(const BOOL _CursorMode);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETBACKGROUNDMODE)(void);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPSETBACKGROUNDMODE)(const BOOL _BackGroundMode);
+typedef WORD  WINAPI (*WINAPI_SEVENZIPGETCURSORINTERVAL)(void);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPSETCURSORINTERVAL)(const WORD _Interval);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETRUNNING)(void);
 
-typedef BOOL  (*WINAPI_SEVENZIPCONFIGDIALOG)(const HWND _hwnd, LPSTR _szOptionBuffer, const int _iMode);
-typedef BOOL  (*WINAPI_SEVENZIPCHECKARCHIVE)(LPCSTR _szFileName, const int _iMode);
-typedef int   (*WINAPI_SEVENZIPGETFILECOUNT)(LPCSTR _szArcFile);
-typedef BOOL  (*WINAPI_SEVENZIPQUERYFUNCTIONLIST)(const int _iFunction);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPCONFIGDIALOG)(const HWND _hwnd, LPSTR _szOptionBuffer, const int _iMode);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPCHECKARCHIVE)(LPCSTR _szFileName, const int _iMode);
+typedef int   WINAPI (*WINAPI_SEVENZIPGETFILECOUNT)(LPCSTR _szArcFile);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPQUERYFUNCTIONLIST)(const int _iFunction);
 
-typedef HARC  (*WINAPI_SEVENZIPOPENARCHIVE)(const HWND _hwnd, LPCSTR _szFileName, const DWORD _dwMode);
-typedef int   (*WINAPI_SEVENZIPCLOSEARCHIVE)(HARC _harc);
-typedef int   (*WINAPI_SEVENZIPFINDFIRST)(HARC _harc, LPCSTR _szWildName, INDIVIDUALINFO *_lpSubInfo);
-typedef int   (*WINAPI_SEVENZIPFINDNEXT)(HARC _harc, INDIVIDUALINFO *_lpSubInfo);
-typedef int   (*WINAPI_SEVENZIPGETARCFILENAME)(HARC _harc, LPSTR _lpBuffer, const int _nSize);
-typedef DWORD (*WINAPI_SEVENZIPGETARCFILESIZE)(HARC _harc);
-typedef DWORD (*WINAPI_SEVENZIPGETARCORIGINALSIZE)(HARC _harc);
-typedef DWORD (*WINAPI_SEVENZIPGETARCCOMPRESSEDSIZE)(HARC _harc);
-typedef WORD  (*WINAPI_SEVENZIPGETARCRATIO)(HARC _harc);
-typedef WORD  (*WINAPI_SEVENZIPGETARCDATE)(HARC _harc);
-typedef WORD  (*WINAPI_SEVENZIPGETARCTIME)(HARC _harc);
-typedef UINT  (*WINAPI_SEVENZIPGETARCOSTYPE)(HARC _harc);
-typedef int   (*WINAPI_SEVENZIPISSFXFILE)(HARC _harc);
-typedef int   (*WINAPI_SEVENZIPGETFILENAME)(HARC _harc, LPSTR _lpBuffer, const int _nSize);
-typedef DWORD (*WINAPI_SEVENZIPGETORIGINALSIZE)(HARC _harc);
-typedef DWORD (*WINAPI_SEVENZIPGETCOMPRESSEDSIZE)(HARC _harc);
-typedef WORD  (*WINAPI_SEVENZIPGETRATIO)(HARC _harc);
-typedef WORD  (*WINAPI_SEVENZIPGETDATE)(HARC _harc);
-typedef	WORD  (*WINAPI_SEVENZIPGETTIME)(HARC _harc);
-typedef DWORD (*WINAPI_SEVENZIPGETCRC)(HARC _harc);
-typedef int   (*WINAPI_SEVENZIPGETATTRIBUTE)(HARC _harc);
-typedef UINT  (*WINAPI_SEVENZIPGETOSTYPE)(HARC _harc);
-typedef int   (*WINAPI_SEVENZIPGETMETHOD)(HARC _harc, LPSTR _lpBuffer, const int _nSize);
-typedef DWORD (*WINAPI_SEVENZIPGETWRITETIME)(HARC _harc);
-typedef	DWORD (*WINAPI_SEVENZIPGETCREATETIME)(HARC _harc);
-typedef DWORD (*WINAPI_SEVENZIPGETACCESSTIME)(HARC _harc);
-typedef BOOL  (*WINAPI_SEVENZIPGETWRITETIMEEX)(HARC _harc, FILETIME *_lpftLastWriteTime);
-typedef BOOL  (*WINAPI_SEVENZIPGETCREATETIMEEX)(HARC _harc, FILETIME *_lpftLastWriteTime);
-typedef BOOL  (*WINAPI_SEVENZIPGETACCESSTIMEEX)(HARC _harc, FILETIME *_lpftLastWriteTime);
-typedef BOOL  (*WINAPI_SEVENZIPGETARCCREATETIMEEX)(HARC _harc, FILETIME *_lpftCreationTime);
-typedef BOOL  (*WINAPI_SEVENZIPGETARCACCESSTIMEEX)(HARC _harc, FILETIME *_lpftLastAccessTime);
-typedef	BOOL  (*WINAPI_SEVENZIPGETARCWRITETIMEEX)(HARC _harc, FILETIME *_lpftLastWriteTime);
-typedef BOOL  (*WINAPI_SEVENZIPGETARCFILESIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
-typedef BOOL  (*WINAPI_SEVENZIPGETARCORIGINALSIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
-typedef BOOL  (*WINAPI_SEVENZIPGETARCCOMPRESSEDSIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
-typedef BOOL  (*WINAPI_SEVENZIPGETORIGINALSIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
-typedef BOOL  (*WINAPI_SEVENZIPGETCOMPRESSEDSIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
+typedef HARC  WINAPI (*WINAPI_SEVENZIPOPENARCHIVE)(const HWND _hwnd, LPCSTR _szFileName, const DWORD _dwMode);
+typedef int   WINAPI (*WINAPI_SEVENZIPCLOSEARCHIVE)(HARC _harc);
+typedef int   WINAPI (*WINAPI_SEVENZIPFINDFIRST)(HARC _harc, LPCSTR _szWildName, INDIVIDUALINFO *_lpSubInfo);
+typedef int   WINAPI (*WINAPI_SEVENZIPFINDNEXT)(HARC _harc, INDIVIDUALINFO *_lpSubInfo);
+typedef int   WINAPI (*WINAPI_SEVENZIPGETARCFILENAME)(HARC _harc, LPSTR _lpBuffer, const int _nSize);
+typedef DWORD WINAPI (*WINAPI_SEVENZIPGETARCFILESIZE)(HARC _harc);
+typedef DWORD WINAPI (*WINAPI_SEVENZIPGETARCORIGINALSIZE)(HARC _harc);
+typedef DWORD WINAPI (*WINAPI_SEVENZIPGETARCCOMPRESSEDSIZE)(HARC _harc);
+typedef WORD  WINAPI (*WINAPI_SEVENZIPGETARCRATIO)(HARC _harc);
+typedef WORD  WINAPI (*WINAPI_SEVENZIPGETARCDATE)(HARC _harc);
+typedef WORD  WINAPI (*WINAPI_SEVENZIPGETARCTIME)(HARC _harc);
+typedef UINT  WINAPI (*WINAPI_SEVENZIPGETARCOSTYPE)(HARC _harc);
+typedef int   WINAPI (*WINAPI_SEVENZIPISSFXFILE)(HARC _harc);
+typedef int   WINAPI (*WINAPI_SEVENZIPGETFILENAME)(HARC _harc, LPSTR _lpBuffer, const int _nSize);
+typedef DWORD WINAPI (*WINAPI_SEVENZIPGETORIGINALSIZE)(HARC _harc);
+typedef DWORD WINAPI (*WINAPI_SEVENZIPGETCOMPRESSEDSIZE)(HARC _harc);
+typedef WORD  WINAPI (*WINAPI_SEVENZIPGETRATIO)(HARC _harc);
+typedef WORD  WINAPI (*WINAPI_SEVENZIPGETDATE)(HARC _harc);
+typedef	WORD  WINAPI (*WINAPI_SEVENZIPGETTIME)(HARC _harc);
+typedef DWORD WINAPI (*WINAPI_SEVENZIPGETCRC)(HARC _harc);
+typedef int   WINAPI (*WINAPI_SEVENZIPGETATTRIBUTE)(HARC _harc);
+typedef UINT  WINAPI (*WINAPI_SEVENZIPGETOSTYPE)(HARC _harc);
+typedef int   WINAPI (*WINAPI_SEVENZIPGETMETHOD)(HARC _harc, LPSTR _lpBuffer, const int _nSize);
+typedef DWORD WINAPI (*WINAPI_SEVENZIPGETWRITETIME)(HARC _harc);
+typedef	DWORD WINAPI (*WINAPI_SEVENZIPGETCREATETIME)(HARC _harc);
+typedef DWORD WINAPI (*WINAPI_SEVENZIPGETACCESSTIME)(HARC _harc);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETWRITETIMEEX)(HARC _harc, FILETIME *_lpftLastWriteTime);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETCREATETIMEEX)(HARC _harc, FILETIME *_lpftLastWriteTime);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETACCESSTIMEEX)(HARC _harc, FILETIME *_lpftLastWriteTime);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETARCCREATETIMEEX)(HARC _harc, FILETIME *_lpftCreationTime);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETARCACCESSTIMEEX)(HARC _harc, FILETIME *_lpftLastAccessTime);
+typedef	BOOL  WINAPI (*WINAPI_SEVENZIPGETARCWRITETIMEEX)(HARC _harc, FILETIME *_lpftLastWriteTime);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETARCFILESIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETARCORIGINALSIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETARCCOMPRESSEDSIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETORIGINALSIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
+typedef BOOL  WINAPI (*WINAPI_SEVENZIPGETCOMPRESSEDSIZEEX)(HARC _harc, ULHA_INT64 *_lpllSize);
 
-typedef BOOL (*WINAPI_SEVENZIPSETOWNERWINDOW)(HWND _hwnd);
-typedef BOOL (*WINAPI_SEVENZIPCLEAROWNERWINDOW)(void);
-typedef BOOL (*WINAPI_SEVENZIPSETOWNERWINDOWEX)(HWND _hwnd, LPARCHIVERPROC _lpArcProc);
-typedef BOOL (*WINAPI_SEVENZIPKILLOWNERWINDOWEX)(HWND _hwnd);
-typedef BOOL (*WINAPI_SEVENZIPSETOWNERWINDOWEX64)(HWND _hwnd, LPARCHIVERPROC _lpArcProc, DWORD _dwStructSize);
-typedef BOOL (*WINAPI_SEVENZIPKILLOWNERWINDOWEX64)(HWND _hwnd);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPSETOWNERWINDOW)(HWND _hwnd);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPCLEAROWNERWINDOW)(void);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPSETOWNERWINDOWEX)(HWND _hwnd, LPARCHIVERPROC _lpArcProc);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPKILLOWNERWINDOWEX)(HWND _hwnd);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPSETOWNERWINDOWEX64)(HWND _hwnd, LPARCHIVERPROC _lpArcProc, DWORD _dwStructSize);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPKILLOWNERWINDOWEX64)(HWND _hwnd);
 
-typedef WORD (*WINAPI_SEVENZIPGETSUBVERSION)();
-typedef int  (*WINAPI_SEVENZIPGETARCHIVETYPE)(LPCSTR _szFileName);
-typedef BOOL (*WINAPI_SEVENZIPSETUNICODEMODE)(BOOL _bUnicode);
-typedef int (*WINAPI_SEVENZIPSETDEFAULTPASSWORD)(HARC _harc, LPCSTR _szPassword);
-typedef DWORD (*WINAPI_SEVENZIPGETDEFAULTPASSWORD)(HARC _harc, LPSTR _szPassword, DWORD _dwSize);
-typedef int (*WINAPI_SEVENZIPPASSWORDDIALOG)(HWND _hwnd, LPSTR _szBuffer, DWORD _dwSize);
-typedef BOOL (*WINAPI_SEVENZIPSETPRIORITY)(const int _nPriority);
+typedef WORD WINAPI (*WINAPI_SEVENZIPGETSUBVERSION)();
+typedef int  WINAPI (*WINAPI_SEVENZIPGETARCHIVETYPE)(LPCSTR _szFileName);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPSETUNICODEMODE)(BOOL _bUnicode);
+typedef int WINAPI (*WINAPI_SEVENZIPSETDEFAULTPASSWORD)(HARC _harc, LPCSTR _szPassword);
+typedef DWORD WINAPI (*WINAPI_SEVENZIPGETDEFAULTPASSWORD)(HARC _harc, LPSTR _szPassword, DWORD _dwSize);
+typedef int WINAPI (*WINAPI_SEVENZIPPASSWORDDIALOG)(HWND _hwnd, LPSTR _szBuffer, DWORD _dwSize);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPSETPRIORITY)(const int _nPriority);
 
 #define GETPROCADDRESS(type, var, fname)            \
     type var = (type)GetProcAddress(hDLL, fname);   \
@@ -129,6 +129,7 @@ int main(int argc, char *argv[])
       GETPROCADDRESS(WINAPI_SEVENZIPSETDEFAULTPASSWORD, hSetDefPasswd, "SevenZipSetDefaultPassword");
       GETPROCADDRESS(WINAPI_SEVENZIPGETFILECOUNT, hFileCount, "SevenZipGetFileCount");
       GETPROCADDRESS(WINAPI_SEVENZIPGETATTRIBUTE, hAttribute, "SevenZipGetAttribute");
+      GETPROCADDRESS(WINAPI_SEVENZIPQUERYFUNCTIONLIST, hQueryFunc, "SevenZipQueryFunctionList");
 
       DWORD dwVersion;
       dwVersion = hVersion();
@@ -144,12 +145,14 @@ int main(int argc, char *argv[])
       int nType;
       HARC hArch;
       int nAttr;
-
+      int nResult;
+      bCheck = hQueryFunc(ISARC_GET_ATTRIBUTE);
+      g_print("bCheck:%08x\n", bCheck);
       {
           /*
            * check hpasswd.7z
            */
-          int nResult = hSetDefPasswd(NULL, "test");
+          nResult = hSetDefPasswd(NULL, "test");
           hArch = hOpenFunc(NULL, "hpasswd.7z", M_ERROR_MESSAGE_OFF|M_BAR_WINDOW_OFF);
           if (hArch != NULL){
               bCheck = hChkFunc("hpasswd.7z", CHECKARCHIVE_BASIC);
@@ -168,7 +171,6 @@ int main(int argc, char *argv[])
               g_print("?\n");
           }
       }
-      return 0;
       {
           /*
            * check passwd.7z
@@ -177,6 +179,7 @@ int main(int argc, char *argv[])
           nType = hArchTypeFunc("passwd.7z");
           hArch = hOpenFunc(NULL, "passwd.7z", 0);
           nAttr = hAttribute(hArch);
+          g_print("nAttr:%08x\n", nAttr);
           if (bCheck == TRUE && nType == 2 && hArch != NULL && nAttr & 0x40){
               g_print("passwd.7z password encrypted\n");
           }
@@ -186,17 +189,35 @@ int main(int argc, char *argv[])
           /*
            * check passwd.zip
            */
-          /*int nResult = hSetPasswd(NULL, "");*/
+          nResult = hSetDefPasswd(NULL, "foo");
           bCheck = hChkFunc("passwd.zip", CHECKARCHIVE_BASIC);
           nType = hArchTypeFunc("passwd.zip");
           hArch = hOpenFunc(NULL, "passwd.zip", 0);
           g_print("hArch:%p\n", hArch);
-          /*nAttr = hAttribute(hArch);*/
+          nAttr = hAttribute(hArch);
           g_print("bCheck:%08x\n", bCheck);
           g_print("nType:%08x\n", nType);
           g_print("nAttr:%08x\n", nAttr);
-          if (bCheck == TRUE && nType == 2 && hArch != NULL && nAttr & 0x40){
+          if (bCheck == TRUE && nType == 1 && hArch != NULL && nAttr & 0x40){
               g_print("passwd.zip password encrypted\n");
+          }
+          hCloseFunc(hArch);
+      }
+      {
+          /*
+           * check nopasswd.zip
+           */
+          nResult = hSetDefPasswd(NULL, "foo");
+          bCheck = hChkFunc("nopasswd.zip", CHECKARCHIVE_BASIC);
+          nType = hArchTypeFunc("nopasswd.zip");
+          hArch = hOpenFunc(NULL, "nopasswd.zip", 0);
+          g_print("hArch:%p\n", hArch);
+          nAttr = hAttribute(hArch);
+          g_print("bCheck:%08x\n", bCheck);
+          g_print("nType:%08x\n", nType);
+          g_print("nAttr:%08x\n", nAttr);
+          if (bCheck == TRUE && nType == 1 && hArch != NULL && nAttr & 0x40){
+              g_print("nopasswd.zip password encrypted\n");
           }
       }
       return 0;
