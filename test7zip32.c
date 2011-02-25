@@ -120,6 +120,7 @@ int main(int argc, char *argv[])
 {
   HANDLE hDLL = LoadLibrary(L"7-zip32");
   if (hDLL != NULL){
+      GETPROCADDRESS(WINAPI_SEVENZIP, hZip, "SevenZip");
       GETPROCADDRESS(WINAPI_SEVENZIPGETVERSION, hVersion, "SevenZipGetVersion");
       GETPROCADDRESS(WINAPI_SEVENZIPGETSUBVERSION, hSubVersion, "SevenZipGetSubVersion");
       GETPROCADDRESS(WINAPI_SEVENZIPCHECKARCHIVE, hChkFunc, "SevenZipCheckArchive");
@@ -148,6 +149,55 @@ int main(int argc, char *argv[])
       int nResult;
       bCheck = hQueryFunc(ISARC_GET_ATTRIBUTE);
       g_print("bCheck:%08x\n", bCheck);
+      char buf[1024];
+      DWORD dwSize = 0;
+      {
+          nResult = hZip(NULL, "x hpasswd.7z -aoa -p\"foo\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("hpasswd.7z invalid password nResult:%08x\n", nResult);
+      }
+      {
+          nResult = hZip(NULL, "x hpasswd.7z -aoa -p\"\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("hpasswd.7z blank password nResult:%08x\n", nResult);
+      }
+      {
+          nResult = hZip(NULL, "x hpasswd.7z -aoa -p\"test\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("hpasswd.7z test password nResult:%08x\n", nResult);
+      }
+
+      {
+          nResult = hZip(NULL, "x passwd.7z -aoa -p\"foo\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("passwd.7z invalid password passwd.7z nResult:%08x\n", nResult);
+
+          nResult = hZip(NULL, "x passwd.7z -aoa -p\"test\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("passwd.7z test password passwd.7z nResult:%08x\n", nResult);
+
+          nResult = hZip(NULL, "x passwd.7z -aoa -p\"\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("passwd.7z blank password passwd.7z nResult:%08x\n", nResult);
+      }
+
+      {
+          nResult = hZip(NULL, "x passwd.zip -aoa -p\"\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("passwd.zip blank password nResult:%08x\n", nResult);
+
+          nResult = hZip(NULL, "x passwd.zip -aoa -p\"test\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("passwd.zip test password nResult:%08x\n", nResult);
+          nResult = hZip(NULL, "x passwd.zip -aoa -p\"foo\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("passwd.zip invalid password nResult:%08x\n", nResult);
+      }
+
+      {
+          nResult = hZip(NULL, "x nopasswd.zip -aoa -p\"\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("nopasswd.zip blank password nResult:%08x\n", nResult);
+
+          nResult = hZip(NULL, "x nopasswd.zip -aoa -p\"foo\" -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("nopasswd.zip invalid password nResult:%08x\n", nResult);
+
+          nResult = hZip(NULL, "x nopasswd.zip -aoa -hide -oc:\\Temp\\7zip -r", buf, dwSize);
+          g_print("nopasswd.zip no password nResult:%08x\n", nResult);
+      }
+
+
+      return 0;
       {
           /*
            * check hpasswd.7z
