@@ -50,6 +50,7 @@ static void exec_chkarchpasswd_cb(GObject *obj, FolderItem *item, const gchar *f
 static void exec_chkarchpasswd_menu_cb(void);
 static void compose_created_cb(GObject *obj, gpointer compose);
 static void compose_destroy_cb(GObject *obj, gpointer compose);
+static void check_attachement_cb(GObject *obj, gpointer compose);
 
 void plugin_load(void)
 {
@@ -268,6 +269,21 @@ void compose_created_cb(GObject *obj, gpointer compose)
     return;
   }
 
+  /* add check archive button for testing. */
+  /* GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_LARGE_TOOLBAR);*/
+  GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_LARGE_TOOLBAR);  
+  GtkToolItem *toolitem = gtk_tool_button_new(icon, "check attachement");
+  GtkTooltips *tooltips = gtk_tooltips_new();
+  gtk_tool_item_set_tooltip(toolitem, tooltips, "check your mail attachement", "");
+  gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
+  
+  g_signal_connect(G_OBJECT(toolitem), "clicked",
+                   G_CALLBACK(check_attachement_cb), compose);
+  g_signal_connect(G_OBJECT(GTK_BIN(toolitem)->child),
+                   "button_press_event",
+                   G_CALLBACK(check_attachement_cb), compose);
+  gtk_widget_show(toolbar);
+  
   g_sendbtn = gtk_toolbar_get_nth_item(GTK_TOOLBAR(toolbar), 0);
   if (g_sendbtn != NULL){
     debug_print("[PLUGIN] toolitem:%p\n", g_sendbtn);
@@ -349,4 +365,10 @@ gboolean send_button_press(GtkWidget	*widget,
 
   /* stop furthor event handling. */
   return TRUE;
+}
+
+void check_attachement_cb(GObject *obj, gpointer compose)
+{
+    Compose* pComp = (Compose*)compose;
+    pComp->attach_store;
 }
