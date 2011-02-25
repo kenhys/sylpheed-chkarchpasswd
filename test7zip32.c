@@ -196,6 +196,16 @@ int main(int argc, char *argv[])
           g_print("nopasswd.zip no password nResult:%08x\n", nResult);
       }
 
+      {
+          nResult = hZip(NULL, "x passwd2.zip -aoa -p\"\" -hide -oc:\\Temp\\7zip -r-", buf, dwSize);
+          g_print("passwd2.zip blank password nResult:%08x\n", nResult);
+
+          nResult = hZip(NULL, "x passwd2.zip -aoa -p\"foo\" -hide -oc:\\Temp\\7zip -r-", buf, dwSize);
+          g_print("passwd2.zip invalid password nResult:%08x\n", nResult);
+
+          nResult = hZip(NULL, "x passwd2.zip -aoa -p\"test\" -hide -oc:\\Temp\\7zip -r-", buf, dwSize);
+          g_print("passwd2.zip no password nResult:%08x\n", nResult);
+      }
 
       return 0;
       {
