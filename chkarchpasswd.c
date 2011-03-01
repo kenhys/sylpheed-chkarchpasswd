@@ -50,8 +50,8 @@ static void exec_chkarchpasswd_cb(GObject *obj, FolderItem *item, const gchar *f
 static void exec_chkarchpasswd_menu_cb(void);
 static void compose_created_cb(GObject *obj, gpointer compose);
 static void compose_destroy_cb(GObject *obj, gpointer compose);
-static gboolean compose_send_cb(GObject *obj, gpointer compose);
-static gboolean compose_sendl_cb(GObject *obj, gpointer compose);
+static gboolean mycompose_send_cb(GObject *obj, gpointer compose);
+static gboolean mycompose_sendl_cb(GObject *obj, gpointer compose);
 static void check_attachement_cb(GObject *obj, gpointer compose);
 
 void plugin_load(void)
@@ -61,18 +61,16 @@ void plugin_load(void)
   syl_plugin_add_menuitem("/Tools", NULL, NULL, NULL);
   syl_plugin_add_menuitem("/Tools", _("Toggle chkarchpasswd"), exec_chkarchpasswd_menu_cb, NULL);
 
-#if 0
-  g_signal_connect(syl_app_get(), "add-msg", G_CALLBACK(exec_chkarchpasswd_cb), NULL);
-#endif
-  
   syl_plugin_signal_connect("compose-created", G_CALLBACK(compose_created_cb), NULL);
 
   syl_plugin_signal_connect("compose-destroy", G_CALLBACK(compose_destroy_cb), NULL);
 
+#if 0
   syl_plugin_signal_connect("compose-send", G_CALLBACK(compose_send_cb), NULL);
 
   syl_plugin_signal_connect("compose-sendl", G_CALLBACK(compose_sendl_cb), NULL);
-
+#endif
+  
   debug_print("[PLUGIN] chkarchpasswd_tool plug-in loading done.\n");
 }
 
@@ -166,6 +164,7 @@ static gboolean send_button_press(GtkWidget	*widget,
                                   GdkEventButton	*event,
                                   gpointer	 data);
 
+#if 0
 static gulong g_hook_id = 0;
 
 /* global button-press-event signal id */
@@ -175,13 +174,9 @@ static GtkToolItem *g_sendbtn = NULL;
 
 /* original button handler id. */
 static gulong g_sendbtn_id = 0;
+#endif
 
 typedef DWORD (CALLBACK* GETVERSIONPROC)(void);
-
-static void destroy_notify(gpointer data)
-{
-  debug_print("[PLUGIN] destroy_notify called.\n");
-}
 
 void compose_created_cb(GObject *obj, gpointer compose)
 {
@@ -213,7 +208,7 @@ void compose_created_cb(GObject *obj, gpointer compose)
       signal_id = g_signal_lookup("button_press_event", GTK_TYPE_BUTTON);
       debug_print("signal_id:%d\n", signal_id);
 
-      nmatch = g_signal_handlers_disconnect_matched(G_OBJECT(GTK_BIN(toolitem)->child),
+      nmatch += g_signal_handlers_disconnect_matched(G_OBJECT(GTK_BIN(toolitem)->child),
                                                           G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_DATA,
                                                           signal_id, 0,
                                                           NULL, NULL, compose);
@@ -222,39 +217,56 @@ void compose_created_cb(GObject *obj, gpointer compose)
       signal_id = g_signal_lookup("clicked", GTK_TYPE_TOOL_BUTTON);
       debug_print("signal_id:%d\n", signal_id);
 
-      nmatch = g_signal_handlers_disconnect_matched(G_OBJECT(toolitem),
+      nmatch += g_signal_handlers_disconnect_matched(G_OBJECT(toolitem),
                                                     G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_DATA,
                                                     signal_id, 0,
                                                     NULL, NULL, compose);
       debug_print("removed:%d\n", nmatch);
   }
   
+  if (nmatch == 4){
+      toolitem = gtk_toolbar_get_nth_item(GTK_TOOLBAR(toolbar), 0);
+      
+      g_signal_connect(G_OBJECT(toolitem), "clicked",
+                   G_CALLBACK(mycompose_send_cb), compose);
+      g_signal_connect(G_OBJECT(GTK_BIN(toolitem)->child),
+                   "button_press_event",
+                   G_CALLBACK(mycompose_send_cb), compose);
+  }
 }
 
 void compose_destroy_cb(GObject *obj, gpointer compose)
 {
   debug_print("[PLUGIN] compose_destroy_cb is called.\n");
-  debug_print("[PLUGIN] g_signal_id is %d.\n", g_signal_id);
-  debug_print("[PLUGIN] g_hook_id is %ld.\n", g_hook_id);
-
-  if (g_signal_id != 0 && g_hook_id != 0){
-    g_signal_remove_emission_hook(g_signal_id, g_hook_id);
-
-    g_hook_id = 0;
-  }
-  
 }
 
-gboolean compose_send_cb(GObject *obj, gpointer compose)
+gboolean mycompose_send_cb(GObject *obj, gpointer compose)
 {
-  debug_print("[PLUGIN] compose_send_cb is called.\n");
+  debug_print("[PLUGIN] mycompose_send_cb is called.\n");
+
+  Compose* pComp = (Compose*)compose;
+
+  GtkTreeModel *model = GTK_TREE_MODEL(pComp->attach_store);
+  GtkTreeIter iter;
+  AttachInfo *ainfo;
+  gboolean valid;
+
+  for (valid = gtk_tree_model_get_iter_first(model, &iter); valid;
+	     valid = gtk_tree_model_iter_next(model, &iter)) {
+        gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
+        /* see 3 as COL_ATTACH_INFO in compose.c */
+        debug_print("file:%s\n", ainfo->file);
+        debug_print("content_type:%s\n", ainfo->content_type);
+        debug_print("name:%s\n", ainfo->name);
+        debug_print("size:%d\n", ainfo->size);
+  }
   /* stop furthor event handling. */
   return TRUE;
 }
 
-gboolean compose_sendl_cb(GObject *obj, gpointer compose)
+gboolean mycompose_sendl_cb(GObject *obj, gpointer compose)
 {
-  debug_print("[PLUGIN] compose_destroy_cb is called.\n");
+  debug_print("[PLUGIN] mycompose_sendl_cb is called.\n");
   /* stop furthor event handling. */
   return TRUE;
 }
