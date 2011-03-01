@@ -240,6 +240,40 @@ void compose_destroy_cb(GObject *obj, gpointer compose)
   debug_print("[PLUGIN] compose_destroy_cb is called.\n");
 }
 
+gboolean
+foreach_func (GtkTreeModel *model,
+              GtkTreePath  *path,
+              GtkTreeIter  *iter,
+              gpointer      user_data)
+{
+    gchar *name, *size, *tree_path_str;
+
+    AttachInfo ainfo;
+    /* Note: here we use 'iter' and not '&iter', because we did not allocate
+     *  the iter on the stack and are already getting the pointer to a tree iter */
+
+    gtk_tree_model_get (model, iter,
+                        0, &ainfo.content_type,
+                        1, &size,
+                        2, &name,
+                        3, &ainfo,
+                        -1);
+
+    tree_path_str = gtk_tree_path_to_string(path);
+
+    g_print ("Row %s: %s %s %s\n", tree_path_str,
+             ainfo.content_type, size, name);
+
+    debug_print("file:%s\n", ainfo.file);
+    debug_print("content_type:%s\n", ainfo.content_type);
+    debug_print("name:%s\n", ainfo.name);
+    debug_print("size:%d\n", ainfo.size);
+
+    g_free(tree_path_str);
+
+    return FALSE; /* do not stop walking the store, call us with next row */
+}
+
 gboolean mycompose_send_cb(GObject *obj, gpointer compose)
 {
   debug_print("[PLUGIN] mycompose_send_cb is called.\n");
@@ -260,6 +294,9 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
         debug_print("name:%s\n", ainfo->name);
         debug_print("size:%d\n", ainfo->size);
   }
+
+  gtk_tree_model_foreach(GTK_TREE_MODEL(pComp->attach_store), foreach_func, NULL);
+
   /* stop furthor event handling. */
   return TRUE;
 }
