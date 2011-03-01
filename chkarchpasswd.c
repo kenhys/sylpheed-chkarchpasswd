@@ -202,6 +202,32 @@ void compose_created_cb(GObject *obj, gpointer compose)
                    "button_press_event",
                    G_CALLBACK(check_attachement_cb), compose);
   gtk_widget_show_all(toolbar);
+
+  /* remove orignal callback from plugin. dirty hack. */
+  guint signal_id;
+  guint nmatch = 0;
+  int btn_index = 0;
+  for (btn_index = 0; btn_index <= 1; btn_index++){
+      toolitem = gtk_toolbar_get_nth_item(GTK_TOOLBAR(toolbar), btn_index);
+
+      signal_id = g_signal_lookup("button_press_event", GTK_TYPE_BUTTON);
+      debug_print("signal_id:%d\n", signal_id);
+
+      nmatch = g_signal_handlers_disconnect_matched(G_OBJECT(GTK_BIN(toolitem)->child),
+                                                          G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_DATA,
+                                                          signal_id, 0,
+                                                          NULL, NULL, compose);
+      debug_print("removed:%d\n", nmatch);
+
+      signal_id = g_signal_lookup("clicked", GTK_TYPE_TOOL_BUTTON);
+      debug_print("signal_id:%d\n", signal_id);
+
+      nmatch = g_signal_handlers_disconnect_matched(G_OBJECT(toolitem),
+                                                    G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_DATA,
+                                                    signal_id, 0,
+                                                    NULL, NULL, compose);
+      debug_print("removed:%d\n", nmatch);
+  }
   
 }
 
