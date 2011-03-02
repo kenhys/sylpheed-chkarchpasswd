@@ -1,5 +1,6 @@
 /*
- * Auto mail forward Plug-in -- forward functionality plug-in for Sylpheed
+ * Check archive password Plug-in -- check your attachment archive is
+ * password encrypted or not when you send mail.
  * Copyright (C) 2011 HAYASHI Kentaro <kenhys@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -176,12 +177,12 @@ static GtkToolItem *g_sendbtn = NULL;
 static gulong g_sendbtn_id = 0;
 #endif
 
-typedef DWORD (CALLBACK* GETVERSIONPROC)(void);
+static Compose* g_compose = NULL;
 
 void compose_created_cb(GObject *obj, gpointer compose)
 {
-  Compose* pComp = (Compose*)compose;
-  GtkWidget *toolbar = pComp->toolbar;
+  g_compose = (Compose*)compose;
+  GtkWidget *toolbar = g_compose->toolbar;
 
   /* add check archive button for testing. */
   /* GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_LARGE_TOOLBAR);*/
@@ -233,6 +234,9 @@ void compose_created_cb(GObject *obj, gpointer compose)
                    "button_press_event",
                    G_CALLBACK(mycompose_send_cb), compose);
   }
+  debug_print("Compose*:%p\n", g_compose);
+  debug_print("compose:%p\n", compose);
+  debug_print("model:%p\n", GTK_TREE_MODEL(g_compose->attach_store));
 }
 
 void compose_destroy_cb(GObject *obj, gpointer compose)
@@ -278,12 +282,15 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
 {
   debug_print("[PLUGIN] mycompose_send_cb is called.\n");
 
-  Compose* pComp = (Compose*)compose;
+  debug_print("Compose* g_compose:%p\n", g_compose);
+  debug_print("gpointer compose:%p\n", compose);
 
-  GtkTreeModel *model = GTK_TREE_MODEL(pComp->attach_store);
+  GtkTreeModel *model = GTK_TREE_MODEL(g_compose->attach_store);
   GtkTreeIter iter;
   AttachInfo *ainfo;
   gboolean valid;
+
+  debug_print("model:%p\n", model);
 
   for (valid = gtk_tree_model_get_iter_first(model, &iter); valid;
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
@@ -295,7 +302,7 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
         debug_print("size:%d\n", ainfo->size);
   }
 
-  gtk_tree_model_foreach(GTK_TREE_MODEL(pComp->attach_store), foreach_func, NULL);
+  gtk_tree_model_foreach(GTK_TREE_MODEL(g_compose->attach_store), foreach_func, NULL);
 
   /* stop furthor event handling. */
   return TRUE;
