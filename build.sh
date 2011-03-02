@@ -1,6 +1,6 @@
 
 TARGET=chkarchpasswd.dll
-OBJS=chkarchpasswd.o
+OBJS=" chkarchpasswd.o compose.o"
 LIBSYLPH=./lib/libsylph-0-1.a
 LIBSYLPHEED=./lib/libsylpheed-plugin-0-1.a
 INC=" -I. -I./include -I../../ -I../../libsylph -I../../src "
@@ -10,6 +10,14 @@ DEF=" -DHAVE_CONFIG_H -DUNICODE -D_UNICODE"
 LIBS=" `pkg-config --libs glib-2.0 gobject-2.0 gtk+-2.0`"
 
 if [ -z "$1" ]; then
+
+    com="gcc -Wall -c $DEF $INC compose.c"
+    echo $com
+    eval $com
+    if [ $? != 0  ]; then
+        echo "compile error"
+        exit
+    fi
 
     com="gcc -Wall -c $DEF $INC chkarchpasswd.c"
     echo $com

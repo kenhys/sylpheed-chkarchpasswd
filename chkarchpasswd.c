@@ -45,7 +45,7 @@
 
 static SylPluginInfo info = {
   "Check attachment password Plug-in",
-  "0.1.0",
+  "0.2.0",
   "HAYASHI Kentaro",
   "Check password of your mail attachment(*.zip), when you send mail."
 };
@@ -357,9 +357,15 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
           if (nblank == 0x0000800a && npasswd == 0x00000000){
               /* passwd ok */
               g_print("%s valid password result\n", ainfo->name);
+          } else if (nblank == 0x0000800a && npasswd == 0x0000800a){
+              /* passwd but not match */
+              g_print("%s invalid password result\n", ainfo->name);
           } else if (nblank == 0x00000000 && npasswd == 0x00000000){
               /* no password */
               g_print("%s no password result\n", ainfo->name);
+
+              syl_plugin_alertpanel("Warning", "Do you want to send mail attached NO-PASSWORD zip?",
+                         GTK_STOCK_YES, GTK_STOCK_NO, NULL);
           }
       }
   }
