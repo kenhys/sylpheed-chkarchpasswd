@@ -53,7 +53,6 @@ static void compose_created_cb(GObject *obj, gpointer compose);
 static void compose_destroy_cb(GObject *obj, gpointer compose);
 static gboolean mycompose_send_cb(GObject *obj, gpointer compose);
 static gboolean mycompose_sendl_cb(GObject *obj, gpointer compose);
-static void check_attachement_cb(GObject *obj, gpointer compose);
 
 typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
 
@@ -166,11 +165,11 @@ void exec_chkarchpasswd_cb(GObject *obj, FolderItem *item, const gchar *file, gu
   debug_print("[PLUGIN] syl_plugin_send_message done.\n");
 }
 
+#if 0
 static gboolean send_button_press(GtkWidget	*widget,
                                   GdkEventButton	*event,
                                   gpointer	 data);
 
-#if 0
 static gulong g_hook_id = 0;
 
 /* global button-press-event signal id */
@@ -188,6 +187,7 @@ void compose_created_cb(GObject *obj, gpointer compose)
 {
   g_compose = (Compose*)compose;
   GtkWidget *toolbar = g_compose->toolbar;
+  GtkToolItem *toolitem = NULL;
 
   g_hdll = LoadLibrary(L"7-zip32.dll");
   if (g_hdll==NULL){
@@ -196,6 +196,7 @@ void compose_created_cb(GObject *obj, gpointer compose)
   }
   hZip = (WINAPI_SEVENZIP)GetProcAddress(g_hdll, "SevenZip");
 
+#if 0
   /* add check archive button for testing. */
   /* GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_LARGE_TOOLBAR);*/
   GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_LARGE_TOOLBAR);  
@@ -210,7 +211,8 @@ void compose_created_cb(GObject *obj, gpointer compose)
                    "button_press_event",
                    G_CALLBACK(check_attachement_cb), compose);
   gtk_widget_show_all(toolbar);
-
+#endif
+  
   /* remove orignal callback from plugin. dirty hack. */
   guint signal_id;
   guint nmatch = 0;
@@ -245,6 +247,13 @@ void compose_created_cb(GObject *obj, gpointer compose)
       g_signal_connect(G_OBJECT(GTK_BIN(toolitem)->child),
                    "button_press_event",
                    G_CALLBACK(mycompose_send_cb), compose);
+      toolitem = gtk_toolbar_get_nth_item(GTK_TOOLBAR(toolbar), 1);
+      
+      g_signal_connect(G_OBJECT(toolitem), "clicked",
+                   G_CALLBACK(mycompose_sendl_cb), compose);
+      g_signal_connect(G_OBJECT(GTK_BIN(toolitem)->child),
+                   "button_press_event",
+                   G_CALLBACK(mycompose_sendl_cb), compose);
   }
   debug_print("Compose*:%p\n", g_compose);
   debug_print("compose:%p\n", compose);
@@ -254,6 +263,11 @@ void compose_created_cb(GObject *obj, gpointer compose)
 void compose_destroy_cb(GObject *obj, gpointer compose)
 {
   debug_print("[PLUGIN] compose_destroy_cb is called.\n");
+
+  /**/
+  if (g_hdll!=NULL){
+      FreeLibrary(g_hdll);
+  }
 }
 
 gboolean mycompose_send_cb(GObject *obj, gpointer compose)
@@ -272,6 +286,9 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
   gint nblank;
   gint npasswd;
   
+  gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, PLUGIN_DIR,G_DIR_SEPARATOR_S, "chkarchpasswd", NULL);
+  g_mkdir_with_parents(path, 0);
+  
   for (valid = gtk_tree_model_get_iter_first(model, &iter); valid;
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
       gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
@@ -287,13 +304,13 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
           char buf[1024];
           DWORD dwSize = 0;
           /* input password for archive */
-          gchar *com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -oc:\\Temp\\7zip -r",
-                                       ainfo->file);
+          gchar *com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -o\"%s\" -r",
+                                       ainfo->file, path);
           nblank = hZip(NULL, com, buf, dwSize);
           g_print("%s blank password result:%08x\n", ainfo->name,nblank);
 
-          com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -oc:\\Temp\\7zip -r",
-                                ainfo->file, passwd);
+          com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
+                                ainfo->file, passwd, path);
           npasswd = hZip(NULL, com, buf, dwSize);
           g_print("%s invalid password result:%08x\n",ainfo->name, npasswd);
 
@@ -318,6 +335,7 @@ gboolean mycompose_sendl_cb(GObject *obj, gpointer compose)
   return TRUE;
 }
 
+#if 0
 gboolean send_button_press(GtkWidget	*widget,
                            GdkEventButton	*event,
                            gpointer	 data)
@@ -327,9 +345,4 @@ gboolean send_button_press(GtkWidget	*widget,
   /* stop furthor event handling. */
   return TRUE;
 }
-
-void check_attachement_cb(GObject *obj, gpointer compose)
-{
-    Compose* pComp = (Compose*)compose;
-    pComp->attach_store;
-}
+#endif
