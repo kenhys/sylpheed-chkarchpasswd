@@ -55,6 +55,11 @@ static gboolean mycompose_send_cb(GObject *obj, gpointer compose);
 static gboolean mycompose_sendl_cb(GObject *obj, gpointer compose);
 static void check_attachement_cb(GObject *obj, gpointer compose);
 
+typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
+
+static HANDLE g_hdll = NULL;
+static WINAPI_SEVENZIP hZip = NULL;
+
 void plugin_load(void)
 {
   debug_print("[PLUGIN] initializing chkarchpasswd plug-in\n");
@@ -184,6 +189,13 @@ void compose_created_cb(GObject *obj, gpointer compose)
   g_compose = (Compose*)compose;
   GtkWidget *toolbar = g_compose->toolbar;
 
+  g_hdll = LoadLibrary(L"7-zip32.dll");
+  if (g_hdll==NULL){
+      debug_print("failed to load 7-zip32.dll\n");
+      return;
+  }
+  hZip = (WINAPI_SEVENZIP)GetProcAddress(g_hdll, "SevenZip");
+
   /* add check archive button for testing. */
   /* GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_LARGE_TOOLBAR);*/
   GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_LARGE_TOOLBAR);  
@@ -244,40 +256,6 @@ void compose_destroy_cb(GObject *obj, gpointer compose)
   debug_print("[PLUGIN] compose_destroy_cb is called.\n");
 }
 
-gboolean
-foreach_func (GtkTreeModel *model,
-              GtkTreePath  *path,
-              GtkTreeIter  *iter,
-              gpointer      user_data)
-{
-    gchar *name, *size, *tree_path_str;
-
-    AttachInfo ainfo;
-    /* Note: here we use 'iter' and not '&iter', because we did not allocate
-     *  the iter on the stack and are already getting the pointer to a tree iter */
-
-    gtk_tree_model_get (model, iter,
-                        0, &ainfo.content_type,
-                        1, &size,
-                        2, &name,
-                        3, &ainfo,
-                        -1);
-
-    tree_path_str = gtk_tree_path_to_string(path);
-
-    g_print ("Row %s: %s %s %s\n", tree_path_str,
-             ainfo.content_type, size, name);
-
-    debug_print("file:%s\n", ainfo.file);
-    debug_print("content_type:%s\n", ainfo.content_type);
-    debug_print("name:%s\n", ainfo.name);
-    debug_print("size:%d\n", ainfo.size);
-
-    g_free(tree_path_str);
-
-    return FALSE; /* do not stop walking the store, call us with next row */
-}
-
 gboolean mycompose_send_cb(GObject *obj, gpointer compose)
 {
   debug_print("[PLUGIN] mycompose_send_cb is called.\n");
@@ -291,18 +269,43 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
   gboolean valid;
 
   debug_print("model:%p\n", model);
-
+  gint nblank;
+  gint npasswd;
+  
   for (valid = gtk_tree_model_get_iter_first(model, &iter); valid;
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
-        gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
-        /* see 3 as COL_ATTACH_INFO in compose.c */
-        debug_print("file:%s\n", ainfo->file);
-        debug_print("content_type:%s\n", ainfo->content_type);
-        debug_print("name:%s\n", ainfo->name);
-        debug_print("size:%d\n", ainfo->size);
-  }
+      gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
+      /* see 3 as COL_ATTACH_INFO in compose.c */
+      if (memcmp("application/zip", ainfo->content_type, sizeof("application/zip")) == 0) {
+          debug_print("file:%s\n", ainfo->file);
+          debug_print("content_type:%s\n", ainfo->content_type);
+          debug_print("name:%s\n", ainfo->name);
+          debug_print("size:%d\n", ainfo->size);
 
-  gtk_tree_model_foreach(GTK_TREE_MODEL(g_compose->attach_store), foreach_func, NULL);
+          gchar *passwd= syl_plugin_input_dialog("Password", "what's archive password?", "guest");
+          
+          char buf[1024];
+          DWORD dwSize = 0;
+          /* input password for archive */
+          gchar *com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -oc:\\Temp\\7zip -r",
+                                       ainfo->file);
+          nblank = hZip(NULL, com, buf, dwSize);
+          g_print("%s blank password result:%08x\n", ainfo->name,nblank);
+
+          com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -oc:\\Temp\\7zip -r",
+                                ainfo->file, passwd);
+          npasswd = hZip(NULL, com, buf, dwSize);
+          g_print("%s invalid password result:%08x\n",ainfo->name, npasswd);
+
+          if (nblank == 0x0000800a && npasswd == 0x00000000){
+              /* passwd ok */
+              g_print("%s valid password result\n", ainfo->name);
+          } else if (nblank == 0x00000000 && npasswd == 0x00000000){
+              /* no password */
+              g_print("%s no password result\n", ainfo->name);
+          }
+      }
+  }
 
   /* stop furthor event handling. */
   return TRUE;
