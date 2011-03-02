@@ -563,6 +563,7 @@ static void text_inserted		(GtkTextBuffer	*buffer,
 static gboolean autosave_timeout	(gpointer	 data);
 
 
+#if 0
 static GtkItemFactoryEntry compose_popup_entries[] =
 {
 	{N_("/_Open"),		NULL, compose_attach_open_cb, 0, NULL},
@@ -625,7 +626,7 @@ static GtkItemFactoryEntry compose_entries[] =
 	{N_("/_View/Cu_stomize toolbar..."),
 					NULL, compose_customize_toolbar_cb, 0, NULL},
 	{N_("/_View/---"),		NULL, NULL, 0, "<Separator>"},
-
+    
 #define ENC_ACTION(action) \
 	NULL, compose_set_encoding_cb, action, \
 	"/View/Character encoding/Automatic"
@@ -737,7 +738,9 @@ static GtkItemFactoryEntry compose_entries[] =
 	{N_("/_Help"),			NULL, NULL, 0, "<Branch>"},
 	{N_("/_Help/_About"),		NULL, about_show, 0, NULL}
 };
+#endif
 
+#if 0
 enum
 {
 	DRAG_TYPE_RFC822,
@@ -2946,6 +2949,7 @@ static void compose_select_account(Compose *compose, PrefsAccount *account,
 		compose_insert_sig(compose, TRUE, TRUE, FALSE);
 }
 
+#endif
 static gboolean compose_check_for_valid_recipient(Compose *compose)
 {
 	const gchar *to_raw = "", *cc_raw = "", *bcc_raw = "";
@@ -2983,7 +2987,9 @@ static gboolean compose_check_entries(Compose *compose)
 	const gchar *str;
 
 	if (compose_check_for_valid_recipient(compose) == FALSE) {
+#if 0
 		alertpanel_error(_("Recipient is not specified."));
+#endif
 		return FALSE;
 	}
 
@@ -2991,16 +2997,17 @@ static gboolean compose_check_entries(Compose *compose)
 	if (*str == '\0') {
 		AlertValue aval;
 
+#if 0
 		aval = alertpanel(_("Empty subject"),
 				  _("Subject is empty. Send it anyway?"),
 				  GTK_STOCK_YES, GTK_STOCK_NO, NULL);
 		if (aval != G_ALERTDEFAULT)
 			return FALSE;
+#endif
 	}
 
 	return TRUE;
 }
-
 static gboolean compose_check_attachments(Compose *compose)
 {
 	GtkTextView *text = GTK_TEXT_VIEW(compose->text);
@@ -3056,11 +3063,13 @@ static gboolean compose_check_attachments(Compose *compose)
 	if (attach_found) {
 		AlertValue aval;
 
+#if 0
 		aval = alertpanel(_("Attachment is missing"),
 				  _("There is no attachment. Send it without attachments?"),
 				  GTK_STOCK_YES, GTK_STOCK_NO, NULL);
 		if (aval != G_ALERTDEFAULT)
 			return FALSE;
+#endif
 	}
 
 	return TRUE;
@@ -3092,6 +3101,7 @@ static void check_recp_cancel(GtkWidget *widget, gint *state)
 {
 	*state = GTK_RESPONSE_CANCEL;
 }
+
 
 static gboolean compose_check_recipients(Compose *compose)
 {
@@ -3348,10 +3358,12 @@ static gboolean compose_check_recipients(Compose *compose)
 
 	gtk_tree_view_expand_all(GTK_TREE_VIEW(treeview));
 
+#if 0
 	gtkut_stock_button_set_create(&hbbox, &ok_btn, _("_Send"),
 				      &cancel_btn, GTK_STOCK_CANCEL,
 				      NULL, NULL);
-        gtk_box_pack_end(GTK_BOX(vbox), hbbox, FALSE, FALSE, 0);
+#endif
+    gtk_box_pack_end(GTK_BOX(vbox), hbbox, FALSE, FALSE, 0);
         gtk_widget_grab_default(ok_btn);
 	gtk_widget_grab_focus(ok_btn);
 
@@ -3360,8 +3372,10 @@ static gboolean compose_check_recipients(Compose *compose)
 	g_signal_connect(G_OBJECT(cancel_btn), "clicked",
 			 G_CALLBACK(check_recp_cancel), &state);
 
+#if 0
 	manage_window_set_transient(GTK_WINDOW(window));
-
+#endif
+    
 	gtk_widget_show_all(window);
 
 	while (state == 0)
@@ -3374,7 +3388,7 @@ static gboolean compose_check_recipients(Compose *compose)
 
 	return FALSE;
 }
-
+#if 0
 static void compose_add_new_recipients_to_addressbook(Compose *compose)
 {
 	GSList *to_list = NULL, *cur;
@@ -3418,6 +3432,7 @@ static void compose_add_new_recipients_to_addressbook(Compose *compose)
 	g_slist_free(to_list);
 }
 
+#endif
 void compose_lock(Compose *compose)
 {
 	compose->lock_count++;
@@ -3428,6 +3443,8 @@ void compose_unlock(Compose *compose)
 	if (compose->lock_count > 0)
 		compose->lock_count--;
 }
+#if 0
+
 
 void compose_block_modified(Compose *compose)
 {
@@ -3439,6 +3456,7 @@ void compose_unblock_modified(Compose *compose)
 	compose->block_modified = FALSE;
 }
 
+#endif
 static gint compose_send(Compose *compose)
 {
 	gchar tmp[MAXPATHLEN + 1];
@@ -3464,11 +3482,14 @@ static gint compose_send(Compose *compose)
 		return 1;
 	}
 
-	if (!main_window_toggle_online_if_offline(main_window_get())) {
+#if 0
+	if (!main_window_toggle_online_if_offline(syl_main_window_get())) {
 		compose_unlock(compose);
 		return 1;
 	}
+#endif
 
+    
 	/* write to temporary file */
 	g_snprintf(tmp, sizeof(tmp), "%s%ctmpmsg.%p",
 		   get_tmp_dir(), G_DIR_SEPARATOR, compose);
@@ -3506,22 +3527,28 @@ static gint compose_send(Compose *compose)
 					ac = account_get_default();
 			}
 			if (!ac || ac->protocol == A_NNTP) {
+#if 0
 				alertpanel_error(_("Account for sending mail is not specified.\n"
 						   "Please select a mail account before sending."));
+#endif
 				g_unlink(tmp);
 				compose_unlock(compose);
 				return -1;
 			}
 		}
-		ok = send_message(tmp, ac, compose->to_list);
+		ok = syl_plugin_send_message(tmp, ac, compose->to_list);
+#if 0
 		statusbar_pop_all();
+#endif
 	}
 
 	if (ok == 0 && compose->newsgroup_list) {
 		ok = news_post(FOLDER(compose->account->folder), tmp);
 		if (ok < 0) {
+#if 0
 			alertpanel_error(_("Error occurred while posting the message to %s ."),
 					 compose->account->nntp_server);
+#endif
 			g_unlink(tmp);
 			compose_unlock(compose);
 			return -1;
@@ -3532,15 +3559,15 @@ static gint compose_send(Compose *compose)
 		if (compose->mode == COMPOSE_REEDIT) {
 			compose_remove_reedit_target(compose);
 			if (compose->targetinfo)
-				folderview_update_item
+				syl_plugin_folderview_update_item
 					(compose->targetinfo->folder, TRUE);
 		}
 
 		if (compose->reply_target)
-			send_message_set_reply_flag(compose->reply_target,
+			syl_plugin_send_message_set_reply_flag(compose->reply_target,
 						    compose->inreplyto);
 		else if (compose->forward_targets)
-			send_message_set_forward_flags
+			syl_plugin_send_message_set_forward_flags
 				(compose->forward_targets);
 
 		/* save message to outbox */
@@ -3561,32 +3588,39 @@ static gint compose_send(Compose *compose)
 					     fltinfo);
 
 				drop_done = fltinfo->drop_done;
-				folderview_update_all_updated(TRUE);
+				syl_plugin_folderview_update_all_updated(TRUE);
 				filter_info_free(fltinfo);
 			}
 
 			if (!drop_done) {
 				outbox = account_get_special_folder
 					(compose->account, F_OUTBOX);
-				if (procmsg_save_to_outbox(outbox, tmp) < 0)
+				if (procmsg_save_to_outbox(outbox, tmp) < 0){
+#if 0
 					alertpanel_error
 						(_("Can't save the message to outbox."));
-				else
-					folderview_update_item(outbox, TRUE);
+#endif
+
+                }else{
+					syl_plugin_folderview_update_item(outbox, TRUE);
+                }
 			}
 		}
 
 		/* Add recipients to addressbook automatically */
+#if 0
 		if (prefs_common.recipients_autoreg) {
 			compose_add_new_recipients_to_addressbook(compose);
 		}
-	}
+#endif
+    }
 
 	g_unlink(tmp);
 	compose_unlock(compose);
 
 	return ok;
 }
+#if 0
 
 #if USE_GPGME
 /* interfaces to rfc2015 to keep out the prefs stuff there.
@@ -3719,6 +3753,7 @@ static gint compose_encrypt_sign_armored(Compose *compose, gchar **text)
 }
 #endif /* USE_GPGME */
 
+#endif
 static gint compose_write_to_file(Compose *compose, const gchar *file,
 				  gboolean is_draft)
 {
@@ -3786,11 +3821,13 @@ static gint compose_write_to_file(Compose *compose, const gchar *file,
 							"Send it as %s anyway?"),
 						      src_charset, body_charset,
 						      src_charset);
+#if 0
 				aval = alertpanel_full
 					(_("Code conversion error"), msg, ALERT_ERROR,
 					 G_ALERTALTERNATE,
 					 FALSE, GTK_STOCK_YES, GTK_STOCK_NO, NULL);
-				g_free(msg);
+#endif
+                g_free(msg);
 			}
 
 			if (aval != G_ALERTDEFAULT) {
@@ -3877,6 +3914,7 @@ static gint compose_write_to_file(Compose *compose, const gchar *file,
 			   "The contents of the message might be broken on the way to the delivery.\n"
 			   "\n"
 			   "Send it anyway?"), line + 1);
+#if 0
 		aval = alertpanel_full(_("Line length limit"),
 				       msg, ALERT_WARNING,
 				       G_ALERTALTERNATE, FALSE,
@@ -3888,6 +3926,7 @@ static gint compose_write_to_file(Compose *compose, const gchar *file,
 			g_free(buf);
 			return -1;
 		}
+#endif
 	}
 
 	/* write headers */
@@ -4079,7 +4118,7 @@ static gint compose_write_to_file(Compose *compose, const gchar *file,
 
 	return 0;
 }
-
+#if 0
 static gint compose_write_body_to_file(Compose *compose, const gchar *file)
 {
 	GtkTextBuffer *buffer;
@@ -4135,6 +4174,7 @@ static gint compose_write_body_to_file(Compose *compose, const gchar *file)
 	return 0;
 }
 
+#endif
 static gint compose_redirect_write_to_file(Compose *compose, const gchar *file)
 {
 	FILE *fp;
@@ -4223,7 +4263,6 @@ error:
 
 	return -1;
 }
-
 static gint compose_remove_reedit_target(Compose *compose)
 {
 	FolderItem *item;
@@ -4363,21 +4402,22 @@ static gint compose_queue(Compose *compose, const gchar *file)
 		compose_remove_reedit_target(compose);
 		if (compose->targetinfo &&
 		    compose->targetinfo->folder != queue)
-			folderview_update_item
+			syl_plugin_folderview_update_item
 				(compose->targetinfo->folder, TRUE);
 	}
 
 	folder_item_scan(queue);
-	folderview_update_item(queue, TRUE);
+	syl_plugin_folderview_update_item(queue, TRUE);
 
 	/* Add recipients to addressbook automatically */
+#if 0
 	if (prefs_common.recipients_autoreg) {
 		compose_add_new_recipients_to_addressbook(compose);
 	}
-
-	main_window_set_menu_sensitive(main_window_get());
-	main_window_set_toolbar_sensitive(main_window_get());
-
+	main_window_set_menu_sensitive(syl_plugin_main_window_get());
+	main_window_set_toolbar_sensitive(syl_plugin_main_window_get());
+#endif
+    
 	return 0;
 }
 
@@ -4397,16 +4437,22 @@ static gint compose_write_attach(Compose *compose, FILE *fp,
 		gtk_tree_model_get(model, &iter, COL_ATTACH_INFO, &ainfo, -1);
 
 		if (!is_file_exist(ainfo->file)) {
+#if 0
 			alertpanel_error(_("File %s doesn't exist."),
 					 ainfo->file);
+#endif
 			return -1;
 		}
 		if (get_file_size(ainfo->file) <= 0) {
+#if 0
 			alertpanel_error(_("File %s is empty."), ainfo->file);
+#endif
 			return -1;
 		}
 		if ((attach_fp = g_fopen(ainfo->file, "rb")) == NULL) {
+#if 0
 			alertpanel_error(_("Can't open file %s."), ainfo->file);
+#endif
 			return -1;
 		}
 
@@ -4983,7 +5029,6 @@ static void compose_convert_header(Compose *compose, gchar *dest, gint len,
 
 	g_free(src_);
 }
-
 static gchar *compose_convert_filename(Compose *compose, const gchar *src,
 				       const gchar *param_name,
 				       const gchar *encoding)
@@ -5031,6 +5076,7 @@ static void compose_generate_msgid(Compose *compose, gchar *buf, gint len)
 	g_free(addr);
 }
 
+#if 0
 static void compose_add_entry_field(GtkWidget *table, GtkWidget **hbox,
 				    GtkWidget **entry, gint *count,
 				    const gchar *label_str,
@@ -5059,6 +5105,8 @@ static void compose_add_entry_field(GtkWidget *table, GtkWidget **hbox,
 
 	(*count)++;
 }
+
+#if 0
 
 static Compose *compose_create(PrefsAccount *account, ComposeMode mode)
 {
@@ -5471,8 +5519,10 @@ static Compose *compose_create(PrefsAccount *account, ComposeMode mode)
 	undo_set_change_state_func(undostruct, &compose_undo_state_changed,
 				   menubar);
 
+#if 0
 	address_completion_start(window);
-
+#endif
+    
 	compose->window        = window;
 	compose->vbox	       = vbox;
 	compose->menubar       = menubar;
@@ -5680,6 +5730,7 @@ static Compose *compose_create(PrefsAccount *account, ComposeMode mode)
 
 	return compose;
 }
+#endif
 
 static Compose *compose_find_window_by_target(MsgInfo *msginfo)
 {
@@ -6201,6 +6252,7 @@ static void compose_template_apply(Compose *compose, Template *tmpl,
 		compose_changed_cb(NULL, compose);
 }
 
+#endif
 static void compose_destroy(Compose *compose)
 {
 	GtkTreeModel *model = GTK_TREE_MODEL(compose->attach_store);
@@ -6219,8 +6271,10 @@ static void compose_destroy(Compose *compose)
 
 	/* NOTE: address_completion_end() does nothing with the window
 	 * however this may change. */
+#if 0
 	address_completion_end(compose->window);
-
+#endif
+    
 #if USE_GTKSPELL
 	slist_free_strings(compose->dict_list);
 	g_slist_free(compose->dict_list);
@@ -6248,9 +6302,11 @@ static void compose_destroy(Compose *compose)
 	g_free(compose->msgid);
 	g_free(compose->boundary);
 
+#if 0
 	if (compose->undostruct)
 		undo_destroy(compose->undostruct);
-
+#endif
+    
 	if (compose->exteditor_file) {
 		g_unlink(compose->exteditor_file);
 		g_free(compose->exteditor_file);
@@ -6261,15 +6317,17 @@ static void compose_destroy(Compose *compose)
 		gtk_tree_model_get(model, &iter, COL_ATTACH_INFO, &ainfo, -1);
 		compose_attach_info_free(ainfo);
 	}
-
+#if 0
 	if (addressbook_get_target_compose() == compose)
 		addressbook_set_target_compose(NULL);
-
+#endif
 	prefs_common.compose_maximized = compose->window_maximized;
 	if (!prefs_common.compose_maximized) {
+#if 0
 		gtkut_widget_get_uposition(compose->window,
 					   &prefs_common.compose_x,
 					   &prefs_common.compose_y);
+#endif
 		prefs_common.compose_width =
 			compose->scrolledwin->allocation.width;
 		prefs_common.compose_height =
@@ -6296,6 +6354,7 @@ static void compose_attach_info_free(AttachInfo *ainfo)
 	g_free(ainfo->name);
 	g_free(ainfo);
 }
+#if 0
 
 static void compose_attach_remove_selected(Compose *compose)
 {
@@ -7174,6 +7233,7 @@ static gboolean attach_key_pressed(GtkWidget *widget, GdkEventKey *event,
 	return FALSE;
 }
 
+#endif
 static void compose_send_cb(gpointer data, guint action, GtkWidget *widget)
 {
 	Compose *compose = (Compose *)data;
@@ -7193,6 +7253,7 @@ static void compose_send_cb(gpointer data, guint action, GtkWidget *widget)
 		compose_destroy(compose);
 }
 
+#if 0
 static void compose_send_later_cb(gpointer data, guint action,
 				  GtkWidget *widget)
 {
@@ -7213,7 +7274,7 @@ static void compose_send_later_cb(gpointer data, guint action,
 		return;
 	}
 	if (!FOLDER_IS_LOCAL(queue->folder) &&
-	    !main_window_toggle_online_if_offline(main_window_get()))
+	    !main_window_toggle_online_if_offline(syl_plugin_main_window_get()))
 		return;
 
 	g_snprintf(tmp, sizeof(tmp), "%s%ctmpmsg.%p",
@@ -7241,7 +7302,9 @@ static void compose_send_later_cb(gpointer data, guint action,
 
 	compose_destroy(compose);
 }
+#endif
 
+#if 0
 static void compose_draft_cb(gpointer data, guint action, GtkWidget *widget)
 {
 	Compose *compose = (Compose *)data;
@@ -7280,12 +7343,12 @@ static void compose_draft_cb(gpointer data, guint action, GtkWidget *widget)
 		compose_remove_reedit_target(compose);
 		if (compose->targetinfo &&
 		    compose->targetinfo->folder != draft)
-			folderview_update_item(compose->targetinfo->folder,
+			syl_plugin_folderview_update_item(compose->targetinfo->folder,
 					       TRUE);
 	}
 
 	folder_item_scan(draft);
-	folderview_update_item(draft, TRUE);
+	syl_plugin_folderview_update_item(draft, TRUE);
 
 	compose_unlock(compose);
 
@@ -8152,3 +8215,4 @@ static gboolean autosave_timeout(gpointer data)
 
 	return TRUE;
 }
+#endif

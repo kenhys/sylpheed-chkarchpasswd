@@ -42,6 +42,7 @@
 #include "7-zip32.h"
 
 #include <glib/gi18n-lib.h>
+#include "compose.c"
 
 static SylPluginInfo info = {
   "Check attachment password Plug-in",
@@ -149,60 +150,6 @@ static void exec_chkarchpasswd_menu_cb(void)
     debug_print("[PLUGIN] disable exec_chkarchpasswd_cb\n");
     g_enable=FALSE;
   }
-}
-
-void exec_chkarchpasswd_cb(GObject *obj, FolderItem *item, const gchar *file, guint num)
-{
-  debug_print("[PLUGIN] exec_chkarchpasswd_cb\n");
-  debug_print("[PLUGIN] file:%s\n", file);
-  debug_print("[PLUGIN] guint num:%d\n", num);
-
-  if (g_enable!=TRUE){
-    return;
-  }
-#if 0
-  if (item->stype != F_NORMAL && item->stype != F_INBOX){
-    debug_print("[PLUGIN] neither F_NORMAL nor F_INBOX\n");
-    return;
-  }
-    
-  PrefsAccount *ac = (PrefsAccount*)account_get_default();
-  debug_print("[PLUGIN] check account address\n");
-  g_return_if_fail(ac != NULL);
-    
-  debug_print("[PLUGIN] account address:%s\n", ac->address);
-  syl_plugin_send_message_set_forward_flags(ac->address);
-  debug_print("[PLUGIN] syl_plugin_send_message_set_forward_flags done.\n");
-
-  FILE *fp;
-  gchar *rcpath;
-  GSList* to_list=NULL;
-
-  gchar buf[PREFSBUFSIZE];
-  rcpath = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, "chkarchpasswdrc", NULL);
-
-  debug_print("[PLUGIN] rcpath:%s\n", rcpath);
-  if ((fp = g_fopen(rcpath, "rb")) == NULL) {
-    if (ENOENT != errno) FILE_OP_ERROR(rcpath, "fopen");
-    g_free(rcpath);
-    return;
-  }
-  g_free(rcpath);
-
-  debug_print("[PLUGIN] read rcpath:%s\n", rcpath);
-  while (fgets(buf, sizeof(buf), fp) != NULL) {
-    g_strstrip(buf);
-    if (buf[0] == '\0') continue;
-    to_list = address_list_append(to_list, buf);
-  }
-  fclose(fp);
-
-  debug_print("[PLUGIN] check to_list\n");
-  g_return_if_fail(to_list != NULL);
-
-  syl_plugin_send_message(file, ac, to_list);
-#endif
-  debug_print("[PLUGIN] syl_plugin_send_message done.\n");
 }
 
 #if 0
@@ -329,6 +276,9 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
   gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, PLUGIN_DIR,G_DIR_SEPARATOR_S, "chkarchpasswd", NULL);
   g_mkdir_with_parents(path, 0);
   
+  gint ntotal = 0;
+  gint nok = 0;
+  gboolean bpasswd = FALSE;
   for (valid = gtk_tree_model_get_iter_first(model, &iter); valid;
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
       gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
@@ -339,7 +289,10 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
           debug_print("name:%s\n", ainfo->name);
           debug_print("size:%d\n", ainfo->size);
 
-          gchar *passwd= syl_plugin_input_dialog("Password", "what's archive password?", "guest");
+          ntotal += 1;
+
+          gchar *msg=g_strdup_printf("添付ファイル(%s)のパスワードを入力してください。", ainfo->name);
+          gchar *passwd= syl_plugin_input_dialog("パスワード", msg, "guest");
           
           char buf[1024];
           DWORD dwSize = 0;
@@ -357,19 +310,42 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
           if (nblank == 0x0000800a && npasswd == 0x00000000){
               /* passwd ok */
               g_print("%s valid password result\n", ainfo->name);
+              bpasswd = TRUE;
+              nok += 1;
           } else if (nblank == 0x0000800a && npasswd == 0x0000800a){
               /* passwd but not match */
               g_print("%s invalid password result\n", ainfo->name);
+              bpasswd = TRUE;
           } else if (nblank == 0x00000000 && npasswd == 0x00000000){
               /* no password */
               g_print("%s no password result\n", ainfo->name);
-
-              syl_plugin_alertpanel("Warning", "Do you want to send mail attached NO-PASSWORD zip?",
-                         GTK_STOCK_YES, GTK_STOCK_NO, NULL);
+              nok +=1;
           }
       }
   }
-
+  if (bpasswd && nok == ntotal){
+      syl_plugin_alertpanel("情報", "パスワードが設定されていることを確認しました。メールを送信します。",
+                                    GTK_STOCK_OK,NULL, NULL);
+      compose_send(g_compose);
+  }else if (bpasswd && nok != ntotal){
+      syl_plugin_alertpanel("警告", "パスワードに誤りがあります。送信を中止しました。",
+                            GTK_STOCK_OK, NULL, NULL);
+  }else if (nok > 0 && nok == ntotal){
+      gint val = syl_plugin_alertpanel("警告", "パスワードが設定されていません。このままメールを送信しますか?",
+                                       GTK_STOCK_YES, GTK_STOCK_NO, NULL);
+      if (val != 0){
+          return TRUE;
+      }
+      val = syl_plugin_alertpanel("警告", "パスワードが設定されていないことを承知でメールを送信しますか?",
+                                  GTK_STOCK_NO, GTK_STOCK_YES, NULL);
+      if (val == 0){
+          return TRUE;
+      }
+      compose_send(g_compose);
+  }else{
+      syl_plugin_alertpanel("警告", "エラーがあるようです。送信を中止しました。",
+                            GTK_STOCK_OK, NULL, NULL);
+  }
   /* stop furthor event handling. */
   return TRUE;
 }
