@@ -34,6 +34,9 @@
 #include "alertpanel.h"
 #include "compose.h"
 
+#include "online.xpm"
+#include "offline.xpm"
+
 #include "unlha32.h"
 #include "unzip32.h"
 #include "7-zip32.h"
@@ -59,6 +62,11 @@ typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR
 static HANDLE g_hdll = NULL;
 static WINAPI_SEVENZIP hZip = NULL;
 
+static GtkWidget *g_plugin_on = NULL;
+static GtkWidget *g_plugin_off = NULL;
+static GtkWidget *g_onoff_switch = NULL;
+static GtkTooltips *g_tooltip = NULL;
+
 void plugin_load(void)
 {
   debug_print("[PLUGIN] initializing chkarchpasswd plug-in\n");
@@ -76,7 +84,39 @@ void plugin_load(void)
   syl_plugin_signal_connect("compose-sendl", G_CALLBACK(compose_sendl_cb), NULL);
 #endif
   
-  debug_print("[PLUGIN] chkarchpasswd_tool plug-in loading done.\n");
+    GtkWidget *statusbar = syl_plugin_main_window_get_statusbar();
+    GtkWidget *plugin_box = gtk_hbox_new(FALSE, 0);
+
+    GdkPixbuf* on_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)online_xpm);
+    g_plugin_on=gtk_image_new_from_pixbuf(on_pixbuf);
+    /*g_plugin_on = gtk_label_new(_("AF ON"));*/
+    
+    GdkPixbuf* off_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)offline_xpm);
+    g_plugin_off=gtk_image_new_from_pixbuf(off_pixbuf);
+    /*g_plugin_off = gtk_label_new(_("AF OFF"));*/
+
+    gtk_box_pack_start(GTK_BOX(plugin_box), g_plugin_on, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(plugin_box), g_plugin_off, FALSE, FALSE, 0);
+    
+    g_tooltip = gtk_tooltips_new();
+    
+    g_onoff_switch = gtk_button_new();
+    gtk_button_set_relief(GTK_BUTTON(g_onoff_switch), GTK_RELIEF_NONE);
+	GTK_WIDGET_UNSET_FLAGS(g_onoff_switch, GTK_CAN_FOCUS);
+	gtk_widget_set_size_request(g_onoff_switch, 20, 20);
+
+    gtk_container_add(GTK_CONTAINER(g_onoff_switch), plugin_box);
+#if 0
+	g_signal_connect(G_OBJECT(g_onoff_switch), "clicked",
+                     G_CALLBACK(exec_autoforward_menu_cb), mainwin);
+#endif
+    gtk_box_pack_start(GTK_BOX(statusbar), g_onoff_switch, FALSE, FALSE, 0);
+
+    gtk_widget_show_all(g_onoff_switch);
+    gtk_widget_hide(g_plugin_on);
+
+
+    debug_print("[PLUGIN] chkarchpasswd_tool plug-in loading done.\n");
 }
 
 void plugin_unload(void)
