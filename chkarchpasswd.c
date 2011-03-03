@@ -278,6 +278,7 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
   
   gint ntotal = 0;
   gint nok = 0;
+  gint val = 0;
   gboolean bpasswd = FALSE;
   for (valid = gtk_tree_model_get_iter_first(model, &iter); valid;
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
@@ -291,6 +292,7 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
 
           ntotal += 1;
 
+#if 0
           gchar *msg=g_strdup_printf("添付ファイル(%s)のパスワードを入力してください。", ainfo->name);
           gchar *passwd= syl_plugin_input_dialog("パスワード", msg, "guest");
           
@@ -299,7 +301,8 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
               syl_plugin_alertpanel("情報", msg, GTK_STOCK_OK,NULL, NULL);
               continue;
           }
-
+#endif
+          
           char buf[1024];
           DWORD dwSize = 0;
           /* input password for archive */
@@ -308,8 +311,12 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
           nblank = hZip(NULL, com, buf, dwSize);
           g_print("%s blank password result:%08x\n", ainfo->name,nblank);
 
+#if 0
           com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
                                 ainfo->file, passwd, path);
+#endif
+          com = g_strdup_printf("x \"%s\" -aoa -p\"test\" -hide -o\"%s\" -r",
+                                ainfo->file, path);
           npasswd = hZip(NULL, com, buf, dwSize);
           g_print("%s invalid password result:%08x\n",ainfo->name, npasswd);
 
@@ -322,6 +329,8 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
               /* passwd but not match */
               g_print("%s invalid password result\n", ainfo->name);
               bpasswd = TRUE;
+              /* does not care invalid password */
+              nok += 1;
           } else if (nblank == 0x00000000 && npasswd == 0x00000000){
               /* no password */
               g_print("%s no password result\n", ainfo->name);
@@ -329,13 +338,19 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
           }
       }
   }
+  gboolean bsend = FALSE;
   if (bpasswd && nok == ntotal){
+#if 0
       syl_plugin_alertpanel("情報", "パスワードが設定されていることを確認しました。メールを送信します。",
                                     GTK_STOCK_OK,NULL, NULL);
-      compose_send(g_compose);
+#endif
+      bsend = TRUE;
   }else if (bpasswd && nok != ntotal){
+#if 0
       syl_plugin_alertpanel("警告", "パスワードに誤りがあります。送信を中止しました。",
                             GTK_STOCK_OK, NULL, NULL);
+#endif
+      bsend = TRUE;
   }else if (nok > 0 && nok == ntotal){
       gint val = syl_plugin_alertpanel("警告", "パスワードが設定されていません。このままメールを送信しますか?",
                                        GTK_STOCK_YES, GTK_STOCK_NO, NULL);
@@ -347,10 +362,19 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
       if (val == 0){
           return TRUE;
       }
-      compose_send(g_compose);
+      bsend = TRUE;
   }else{
       syl_plugin_alertpanel("警告", "エラーがあるようです。送信を中止しました。",
                             GTK_STOCK_OK, NULL, NULL);
+  }
+  if (bsend){
+      gtk_widget_set_sensitive(g_compose->vbox, FALSE);
+      val = compose_send(g_compose);
+      gtk_widget_set_sensitive(g_compose->vbox, TRUE);
+
+      if (val == 0){
+          compose_destroy(g_compose);
+      }
   }
   /* stop furthor event handling. */
   return TRUE;
