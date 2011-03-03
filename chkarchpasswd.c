@@ -34,8 +34,8 @@
 #include "alertpanel.h"
 #include "compose.h"
 
-#include "online.xpm"
-#include "offline.xpm"
+#include "key_add.xpm"
+#include "key_delete.xpm"
 
 #include "unlha32.h"
 #include "unzip32.h"
@@ -85,14 +85,20 @@ void plugin_load(void)
   syl_plugin_signal_connect("compose-sendl", G_CALLBACK(compose_sendl_cb), NULL);
 #endif
   
-    GtkWidget *statusbar = syl_plugin_main_window_get_statusbar();
+  g_hdll = LoadLibrary(L"7-zip32.dll");
+  if (g_hdll==NULL){
+      debug_print("failed to load 7-zip32.dll\n");
+  }
+  hZip = (WINAPI_SEVENZIP)GetProcAddress(g_hdll, "SevenZip");
+
+  GtkWidget *statusbar = syl_plugin_main_window_get_statusbar();
     GtkWidget *plugin_box = gtk_hbox_new(FALSE, 0);
 
-    GdkPixbuf* on_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)online_xpm);
+    GdkPixbuf* on_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_add);
     g_plugin_on=gtk_image_new_from_pixbuf(on_pixbuf);
     /*g_plugin_on = gtk_label_new(_("AF ON"));*/
     
-    GdkPixbuf* off_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)offline_xpm);
+    GdkPixbuf* off_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_delete);
     g_plugin_off=gtk_image_new_from_pixbuf(off_pixbuf);
     /*g_plugin_off = gtk_label_new(_("AF OFF"));*/
 
@@ -114,8 +120,22 @@ void plugin_load(void)
     gtk_box_pack_start(GTK_BOX(statusbar), g_onoff_switch, FALSE, FALSE, 0);
 
     gtk_widget_show_all(g_onoff_switch);
-    gtk_widget_hide(g_plugin_on);
 
+    if (g_hdll){
+        gtk_widget_hide(g_plugin_off);
+        gtk_widget_show(g_plugin_on);
+        gtk_tooltips_set_tip
+			(g_tooltip, g_onoff_switch,
+			 _("Chkpasswd is enabled."),
+			 NULL);
+    }else {
+        gtk_widget_hide(g_plugin_on);
+        gtk_widget_show(g_plugin_off);
+        gtk_tooltips_set_tip
+			(g_tooltip, g_onoff_switch,
+			 _("Chkpasswd is disabled."),
+			 NULL);
+    }
 
     debug_print("[PLUGIN] chkarchpasswd_tool plug-in loading done.\n");
 }
@@ -176,12 +196,6 @@ void compose_created_cb(GObject *obj, gpointer compose)
   GtkWidget *toolbar = g_compose->toolbar;
   GtkToolItem *toolitem = NULL;
 
-  g_hdll = LoadLibrary(L"7-zip32.dll");
-  if (g_hdll==NULL){
-      debug_print("failed to load 7-zip32.dll\n");
-      return;
-  }
-  hZip = (WINAPI_SEVENZIP)GetProcAddress(g_hdll, "SevenZip");
 
 #if 0
   /* add check archive button for testing. */
@@ -336,6 +350,8 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
               g_print("%s no password result\n", ainfo->name);
               nok +=1;
           }
+      }else{
+          nok += 1;
       }
   }
   gboolean bsend = FALSE;
@@ -362,6 +378,8 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
       if (val == 0){
           return TRUE;
       }
+      bsend = TRUE;
+  }else if (bpasswd==FALSE && nok == ntotal){
       bsend = TRUE;
   }else{
       syl_plugin_alertpanel("警告", "エラーがあるようです。送信を中止しました。",
