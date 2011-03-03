@@ -294,6 +294,12 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
           gchar *msg=g_strdup_printf("添付ファイル(%s)のパスワードを入力してください。", ainfo->name);
           gchar *passwd= syl_plugin_input_dialog("パスワード", msg, "guest");
           
+          if (passwd==NULL){
+              msg=g_strdup_printf("添付ファイル(%s)のパスワードチェックをスキップします。", ainfo->name);
+              syl_plugin_alertpanel("情報", msg, GTK_STOCK_OK,NULL, NULL);
+              continue;
+          }
+
           char buf[1024];
           DWORD dwSize = 0;
           /* input password for archive */
