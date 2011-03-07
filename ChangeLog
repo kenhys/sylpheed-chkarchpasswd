@@ -1,5 +1,10 @@
 2011-03-07 HAYASHI Kentaro <kenhys@gmail.com>
 	
+	* version 0.3.0
+	  support check password in mail body.
+	
+2011-03-07 HAYASHI Kentaro <kenhys@gmail.com>
+	
 	* version 0.2.0
 	  fix SEGV.
 	
