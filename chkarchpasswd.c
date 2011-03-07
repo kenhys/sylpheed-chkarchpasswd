@@ -302,6 +302,67 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
   gint nok = 0;
   gint val = 0;
   gboolean bpasswd = FALSE;
+
+  debug_print("text:%p\n", g_compose->text);
+  GtkTextView *text = GTK_TEXT_VIEW(g_compose->text);
+  if (text==NULL){
+      debug_print("text is NULL\n");
+      return TRUE;
+  }else{
+      debug_print("text:%p\n", text);
+  }
+  GtkTextBuffer *buffer;
+  buffer = gtk_text_view_get_buffer(text);
+  GtkTextIter tsiter, teiter;
+  if (buffer == NULL){
+      debug_print("buffer is NULL\n");
+      return TRUE;
+  }else{
+      debug_print("buffer:%p\n", buffer);
+  }
+  gtk_text_buffer_get_bounds(buffer, &tsiter, &teiter);
+  gchar *pwtext = gtk_text_buffer_get_text(buffer, &tsiter, &teiter, TRUE);
+  if (pwtext==NULL){
+      debug_print("pwtext is NULL\n");
+      return TRUE;
+  }else{
+      debug_print("pwtext:%p\n", pwtext);
+  }
+  GScanner *gscan = g_scanner_new(NULL);
+  gscan->config->scan_identifier_1char=TRUE;
+  g_scanner_input_text(gscan, pwtext, strlen(pwtext));
+
+  debug_print("scan loop\n");
+  GTokenValue gvalue;
+  GList *pwlist = NULL;
+  int index=0;
+  while( g_scanner_eof(gscan) != TRUE){
+    GTokenType gtoken = g_scanner_get_next_token (gscan);
+    switch (gtoken){
+    case G_TOKEN_CHAR:
+      gvalue = g_scanner_cur_value(gscan);
+      g_print("char:%s\n", gvalue.v_identifier);
+      break;
+    case G_TOKEN_IDENTIFIER:
+      gvalue = g_scanner_cur_value(gscan);
+      for (index = 0; index<strlen(gvalue.v_identifier);index++){
+        if (index == strlen(gvalue.v_identifier)-1 &&
+            gvalue.v_identifier[index] & 0xffff0000){
+          gvalue.v_identifier[index]= '\0';
+        }else{
+          g_print("char :%0x08\n", gvalue.v_identifier[index]);
+        }
+      }
+      g_print("identifier:%s\n", gvalue.v_identifier);
+      pwlist = g_list_append(pwlist, g_strdup(gvalue.v_identifier));
+      break;
+    default:
+      break;
+    }
+  }
+  
+  /* get password candidate from text */
+  
   for (valid = gtk_tree_model_get_iter_first(model, &iter); valid;
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
       gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
@@ -346,17 +407,38 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
               /* passwd ok */
               g_print("%s valid password result\n", ainfo->name);
               bpasswd = TRUE;
-              nok += 1;
           } else if (nblank == 0x0000800a && npasswd == 0x0000800a){
               /* passwd but not match */
               g_print("%s invalid password result\n", ainfo->name);
               bpasswd = TRUE;
               /* does not care invalid password */
-              nok += 1;
           } else if (nblank == 0x00000000 && npasswd == 0x00000000){
               /* no password */
               g_print("%s no password result\n", ainfo->name);
               nok +=1;
+          }
+          if (bpasswd==TRUE){
+              /* check pwlist */
+              guint pwidx = 0;
+              gboolean bmatch = FALSE;
+              for (pwidx = 0; pwidx < g_list_length(pwlist); pwidx++){
+                gchar *passwd = g_list_nth_data(pwlist, pwidx);
+                com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
+                                      ainfo->file, passwd, path);
+                g_print("check password %s for %s\n",passwd, ainfo->name);
+                nblank = hZip(NULL, com, buf, dwSize);
+                if (nblank == 0x00000000){
+                  g_print("%s blank password result:%08x\n", ainfo->name,nblank);
+                  bmatch = TRUE;
+                }
+              }
+              if (bmatch == TRUE){
+                  syl_plugin_alertpanel("警告", "メール本文にパスワードが含まれています。",
+                                        GTK_STOCK_OK,NULL, NULL);
+                  return TRUE;
+              }else{
+                  nok += 1;
+              }
           }
       }else{
           nok += 1;

@@ -32,11 +32,14 @@ int main(int argc, char*argv[])
       gvalue = g_scanner_cur_value(gscan);
       for (index = 0; index<strlen(gvalue.v_identifier);index++){
         if (index == strlen(gvalue.v_identifier)-1 &&
-            gvalue.v_identifier[index] & 0xe308){
+            gvalue.v_identifier[index] == 0xe308){
           g_print("0xe308 found:%d\n", index);
+        } else if (index == strlen(gvalue.v_identifier)-1 &&
+            gvalue.v_identifier[index] & 0xffff0000){
+          g_print("invalid char :0x%08x\n", gvalue.v_identifier[index]);
           gvalue.v_identifier[index]= '\0';
         }else{
-          g_print("char :%0x08\n", gvalue.v_identifier[index]);
+          g_print("char :0x%08x\n", gvalue.v_identifier[index]);
         }
       }
       g_print("identifier:%s\n", gvalue.v_identifier);
