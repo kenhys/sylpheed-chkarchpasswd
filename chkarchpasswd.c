@@ -42,13 +42,18 @@
 #include "7-zip32.h"
 
 #include <glib/gi18n-lib.h>
+#include <locale.h>
 #include "compose.c"
 
+#define _(String)   gettext(String)
+#define N_(String)  gettext_noop(String)
+#define gettext_noop(String) (String)
+
 static SylPluginInfo info = {
-  "Check attachment password Plug-in",
-  "0.2.0",
-  "HAYASHI Kentaro",
-  "Check password of your mail attachment(*.zip), when you send mail."
+    N_("Check attachment password Plug-in"),
+    "0.2.0",
+    "HAYASHI Kentaro",
+    N_("Check password of your mail attachment(*.zip), when you send mail.")
 };
 
 static void exec_chkarchpasswd_cb(GObject *obj, FolderItem *item, const gchar *file, guint num);
@@ -71,6 +76,9 @@ static GtkTooltips *g_tooltip = NULL;
 void plugin_load(void)
 {
   debug_print("[PLUGIN] initializing chkarchpasswd plug-in\n");
+
+  syl_init_gettext("chkarchpasswd", ".");
+  textdomain("chkarchpasswd");
 
   syl_plugin_add_menuitem("/Tools", NULL, NULL, NULL);
   syl_plugin_add_menuitem("/Tools", _("Toggle chkarchpasswd"), exec_chkarchpasswd_menu_cb, NULL);

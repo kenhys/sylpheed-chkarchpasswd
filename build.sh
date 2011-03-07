@@ -47,6 +47,9 @@ if [ ! -z "$1" ]; then
           LIBS="$LIBS -L./lib -lunzip32 -lunlha32 ./lib/lib7zip32.a"
           com="gcc -Wall $DEF $INC testlha32.c -o testlha32.exe $LIBS"
           ;;
+      pot)
+          com="xgettext chkarchpasswd.c -k_ -kN_ -o po/chkarchpasswd.pot"
+          ;;
   esac
   echo $com
   eval $com

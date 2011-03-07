@@ -1,0 +1,50 @@
+# Japanese translations for PACKAGE package
+# PACKAGE パッケージに対する英訳.
+# Copyright (C) 2011 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# <EMAIL@ADDRESS>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: chkarchpasswd\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-03-07 10:16+0900\n"
+"PO-Revision-Date: 2011-03-07 10:19+0900\n"
+"Last-Translator: <kenhys@gmail.com>\n"
+"Language-Team: Japanese\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: chkarchpasswd.c:48
+msgid "Check attachment password Plug-in"
+msgstr "添付ファイルパスワードチェックプラグイン"
+
+#: chkarchpasswd.c:51
+msgid "Check password of your mail attachment(*.zip), when you send mail."
+msgstr "メール送信時添付ファイル(.zip)のパスワードをチェックします。"
+
+#: chkarchpasswd.c:76
+msgid "Toggle chkarchpasswd"
+msgstr "chkarchpasswd 有効化/無効化"
+
+#: chkarchpasswd.c:129
+msgid "Chkpasswd is enabled."
+msgstr "Chkpasswdプラグインを有効化しました。"
+
+#: chkarchpasswd.c:136
+msgid "Chkpasswd is disabled."
+msgstr "Chkpasswdプラグインを無効化しました。"
+
+#: chkarchpasswd.c:165 chkarchpasswd.c:169
+msgid "Check Archive Password"
+msgstr ""
+
+#: chkarchpasswd.c:165
+msgid "chkarchpasswd plugin is enabled."
+msgstr "Chkarchpasswdプラグインを有効化しました。"
+
+#: chkarchpasswd.c:169
+msgid "chkarchpasswd plugin is disabled."
+msgstr "Chkarchpasswdプラグインを無効化しました。"
