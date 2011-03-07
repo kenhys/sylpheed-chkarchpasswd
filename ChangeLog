@@ -1,3 +1,8 @@
+2011-03-07 HAYASHI Kentaro <kenhys@gmail.com>
+	
+	* version 0.2.0
+	  fix SEGV.
+	
 2011-03-04 HAYASHI Kentaro <kenhys@gmail.com>
 	
 	* version 0.2.0 alpha
