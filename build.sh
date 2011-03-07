@@ -50,6 +50,9 @@ if [ ! -z "$1" ]; then
       pot)
           com="xgettext chkarchpasswd.c -k_ -kN_ -o po/chkarchpasswd.pot"
           ;;
+      scan)
+          com="gcc -Wall $DEF $INC testgscanner.c -o testgscanner.exe $LIBS"
+          ;;
   esac
   echo $com
   eval $com
