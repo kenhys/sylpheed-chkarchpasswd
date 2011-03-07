@@ -45,9 +45,11 @@
 #include <locale.h>
 #include "compose.c"
 
+#if 0
 #define _(String)   gettext(String)
 #define N_(String)  gettext_noop(String)
 #define gettext_noop(String) (String)
+#endif
 
 static SylPluginInfo info = {
     N_("Check attachment password Plug-in"),
@@ -362,6 +364,7 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
   }
   
   /* get password candidate from text */
+  gchar *msg=NULL;
   
   for (valid = gtk_tree_model_get_iter_first(model, &iter); valid;
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
@@ -430,15 +433,13 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
                 if (nblank == 0x00000000){
                   g_print("%s blank password result:%08x\n", ainfo->name,nblank);
                   bmatch = TRUE;
+                  msg=g_strdup_printf("メール本文に%sのパスワード(%s)が含まれています。",
+                                      ainfo->name, passwd);
+                  syl_plugin_alertpanel("警告", msg, GTK_STOCK_OK,NULL, NULL);
+                  return TRUE;
                 }
               }
-              if (bmatch == TRUE){
-                  syl_plugin_alertpanel("警告", "メール本文にパスワードが含まれています。",
-                                        GTK_STOCK_OK,NULL, NULL);
-                  return TRUE;
-              }else{
-                  nok += 1;
-              }
+              nok += 1;
           }
       }else{
           nok += 1;
