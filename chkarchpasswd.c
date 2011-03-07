@@ -78,7 +78,7 @@ void plugin_load(void)
   debug_print("[PLUGIN] initializing chkarchpasswd plug-in\n");
 
   syl_init_gettext("chkarchpasswd", ".");
-  textdomain("chkarchpasswd");
+  /*textdomain("chkarchpasswd");*/
 
   syl_plugin_add_menuitem("/Tools", NULL, NULL, NULL);
   syl_plugin_add_menuitem("/Tools", _("Toggle chkarchpasswd"), exec_chkarchpasswd_menu_cb, NULL);
@@ -151,6 +151,9 @@ void plugin_load(void)
 void plugin_unload(void)
 {
   debug_print("chkarchpasswd_tool plug-in unloaded.\n");
+  if (g_hdll!=NULL){
+      FreeLibrary(g_hdll);
+  }
 }
 
 SylPluginInfo *plugin_info(void)
@@ -274,9 +277,6 @@ void compose_destroy_cb(GObject *obj, gpointer compose)
   debug_print("[PLUGIN] compose_destroy_cb is called.\n");
 
   /**/
-  if (g_hdll!=NULL){
-      FreeLibrary(g_hdll);
-  }
 }
 
 gboolean mycompose_send_cb(GObject *obj, gpointer compose)
