@@ -53,7 +53,7 @@
 
 static SylPluginInfo info = {
     N_("Check attachment password Plug-in"),
-    "0.3.0",
+    "0.4.0",
     "HAYASHI Kentaro",
     N_("Check password of your mail attachment(*.zip), when you send mail.")
 };
