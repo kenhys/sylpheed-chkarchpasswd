@@ -66,9 +66,11 @@ static gboolean mycompose_send_cb(GObject *obj, gpointer compose);
 static gboolean mycompose_sendl_cb(GObject *obj, gpointer compose);
 
 typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
+typedef BOOL WINAPI (*WINAPI_SEVENZIPSETUNICODEMODE)(BOOL _bUnicode);
 
 static HANDLE g_hdll = NULL;
 static WINAPI_SEVENZIP hZip = NULL;
+static WINAPI_SEVENZIPSETUNICODEMODE hUniZip = NULL;
 
 static GtkWidget *g_plugin_on = NULL;
 static GtkWidget *g_plugin_off = NULL;
@@ -100,7 +102,11 @@ void plugin_load(void)
       debug_print("failed to load 7-zip32.dll\n");
   }
   hZip = (WINAPI_SEVENZIP)GetProcAddress(g_hdll, "SevenZip");
+  hUniZip = (WINAPI_SEVENZIPSETUNICODEMODE)GetProcAddress(g_hdll, "SevenZipSetUnicodeMode");
 
+  if (hUniZip){
+      hUniZip(TRUE);
+  }
   GtkWidget *statusbar = syl_plugin_main_window_get_statusbar();
     GtkWidget *plugin_box = gtk_hbox_new(FALSE, 0);
 
