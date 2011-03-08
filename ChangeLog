@@ -1,3 +1,9 @@
+2011-03-08 HAYASHI Kentaro <kenhys@gmail.com>
+	
+	* version 0.4.0
+	  support unicode mode.
+	  fix sending non-zip attachment.
+	
 2011-03-07 HAYASHI Kentaro <kenhys@gmail.com>
 	
 	* version 0.3.0
