@@ -371,12 +371,12 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
       gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
       /* see 3 as COL_ATTACH_INFO in compose.c */
       if (memcmp("application/zip", ainfo->content_type, sizeof("application/zip")) == 0) {
+          ntotal += 1;
           debug_print("file:%s\n", ainfo->file);
           debug_print("content_type:%s\n", ainfo->content_type);
           debug_print("name:%s\n", ainfo->name);
           debug_print("size:%d\n", ainfo->size);
 
-          ntotal += 1;
 
 #if 0
           gchar *msg=g_strdup_printf("添付ファイル(%s)のパスワードを入力してください。", ainfo->name);
@@ -442,7 +442,6 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
               nok += 1;
           }
       }else{
-          nok += 1;
       }
   }
   gboolean bsend = FALSE;
