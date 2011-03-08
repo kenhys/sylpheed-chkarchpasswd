@@ -36,8 +36,23 @@
 #include "unzip32.h"
 
 #include <glib/gi18n-lib.h>
+typedef int (*WINAPI_UNLHA)(HWND _hwnd, LPCTSTR _szCmdLine, LPTSTR _szOutput,const DWORD _dwSize);
+
+#define GETPROCADDRESS(type, var, fname)            \
+    type var = (type)GetProcAddress(hDLL, fname);   \
+        if (!var){                                  \
+        g_print("404 %s", fname);                   \
+        return 0; \
+        }
 
 int main(int argc, char*[] argv){
 {
+  HANDLE hDLL = LoadLibrary(L"unlha32");
+  if (hDLL != NULL){
+      GETPROCADDRESS(WINAPI_UNLHA, hUnlha, "Unlha");
+      TCHAR buf[1024];
+      DWORD dwSize;
+      hUnlha(NULL, "x ", buf, dwSize);
+  }
   return 0;
 }
