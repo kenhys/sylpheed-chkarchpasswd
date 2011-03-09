@@ -50,6 +50,12 @@ if [ ! -z "$1" ]; then
       pot)
           com="xgettext chkarchpasswd.c -k_ -kN_ -o po/chkarchpasswd.pot"
           ;;
+      po)
+          com="msgmerge po/ja.po po/chkarchpasswd.pot -o po/ja.po"
+          ;;
+      mo)
+          com="msgfmt po/ja.po -o po/chkarchpasswd.mo"
+          ;;
       scan)
           com="gcc -Wall $DEF $INC testgscanner.c -o testgscanner.exe $LIBS"
           ;;

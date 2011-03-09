@@ -45,17 +45,18 @@
 #include <locale.h>
 #include "compose.c"
 
-#if 0
-#define _(String)   gettext(String)
+#define _(String)   dgettext("chkarchpasswd", String)
 #define N_(String)  gettext_noop(String)
 #define gettext_noop(String) (String)
-#endif
+
+#define PLUGIN_NAME N_("Check attachment password Plug-in")
+#define PLUGIN_DESC N_("Check password of your mail attachment(*.zip), when you send mail.")
 
 static SylPluginInfo info = {
-    N_("Check attachment password Plug-in"),
+    N_(PLUGIN_NAME),
     "0.4.0",
     "HAYASHI Kentaro",
-    N_("Check password of your mail attachment(*.zip), when you send mail.")
+    N_(PLUGIN_DESC)
 };
 
 static void exec_chkarchpasswd_cb(GObject *obj, FolderItem *item, const gchar *file, guint num);
@@ -81,11 +82,29 @@ void plugin_load(void)
 {
   debug_print("[PLUGIN] initializing chkarchpasswd plug-in\n");
 
-  syl_init_gettext("chkarchpasswd", ".");
+  g_hdll = LoadLibrary(L"7-zip32.dll");
+  if (g_hdll==NULL){
+    debug_print("failed to load 7-zip32.dll\n");
+  }else{
+    hZip = (WINAPI_SEVENZIP)GetProcAddress(g_hdll, "SevenZip");
+    hUniZip = (WINAPI_SEVENZIPSETUNICODEMODE)GetProcAddress(g_hdll, "SevenZipSetUnicodeMode");
+
+    if (hUniZip){
+      hUniZip(TRUE);
+    }
+  }
+
+  syl_init_gettext("chkarchpasswd", "lib/locale");
   /*textdomain("chkarchpasswd");*/
 
+  debug_print(gettext(PLUGIN_NAME));
+  debug_print(dgettext("chkarchpasswd", PLUGIN_DESC));
+
+   info.name = g_strdup(_(PLUGIN_NAME));
+  info.description = g_strdup(_(PLUGIN_DESC));
+  
   syl_plugin_add_menuitem("/Tools", NULL, NULL, NULL);
-  syl_plugin_add_menuitem("/Tools", _("Toggle chkarchpasswd"), exec_chkarchpasswd_menu_cb, NULL);
+  syl_plugin_add_menuitem("/Tools", _("Chkarchpasswd Option"), exec_chkarchpasswd_menu_cb, NULL);
 
   syl_plugin_signal_connect("compose-created", G_CALLBACK(compose_created_cb), NULL);
 
@@ -96,17 +115,7 @@ void plugin_load(void)
 
   syl_plugin_signal_connect("compose-sendl", G_CALLBACK(compose_sendl_cb), NULL);
 #endif
-  
-  g_hdll = LoadLibrary(L"7-zip32.dll");
-  if (g_hdll==NULL){
-      debug_print("failed to load 7-zip32.dll\n");
-  }
-  hZip = (WINAPI_SEVENZIP)GetProcAddress(g_hdll, "SevenZip");
-  hUniZip = (WINAPI_SEVENZIPSETUNICODEMODE)GetProcAddress(g_hdll, "SevenZipSetUnicodeMode");
 
-  if (hUniZip){
-      hUniZip(TRUE);
-  }
   GtkWidget *statusbar = syl_plugin_main_window_get_statusbar();
     GtkWidget *plugin_box = gtk_hbox_new(FALSE, 0);
 
@@ -180,6 +189,7 @@ static void exec_chkarchpasswd_menu_cb(void)
 {
   debug_print("[PLUGIN] exec_chkarchpasswd_menu_cb is called.\n");
 
+#if 0
   if (g_enable != TRUE){
     syl_plugin_alertpanel_message(_("Check Archive Password"), _("chkarchpasswd plugin is enabled."), ALERT_NOTICE);
     debug_print("[PLUGIN] enable exec_chkarchpasswd_cb\n");
@@ -189,6 +199,7 @@ static void exec_chkarchpasswd_menu_cb(void)
     debug_print("[PLUGIN] disable exec_chkarchpasswd_cb\n");
     g_enable=FALSE;
   }
+#endif
 }
 
 #if 0
@@ -371,6 +382,21 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
   
   /* get password candidate from text */
   gchar *msg=NULL;
+
+#if 0
+  GtkTreeView *treeview = GTK_TREE_VIEW(g_compose->attach_treeview);
+  GtkCellRenderer *renderer;
+  GtkTreeViewColumn *column;
+
+  renderer = gtk_cell_renderer_text_new ();
+  column = gtk_tree_view_column_new_with_attributes ("Author",
+                                                     renderer,
+                                                     "text", 0,
+                                                     "background", 1,
+                                                     "background-set", 2,
+                                                     NULL);
+  gtk_tree_view_append_column (GTK_TREE_VIEW (tree), column);
+#endif
   
   for (valid = gtk_tree_model_get_iter_first(model, &iter); valid;
 	     valid = gtk_tree_model_iter_next(model, &iter)) {

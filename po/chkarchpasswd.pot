@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-07 10:55+0900\n"
+"POT-Creation-Date: 2011-03-09 18:47+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,30 +20,30 @@ msgstr ""
 msgid "Check attachment password Plug-in"
 msgstr ""
 
-#: chkarchpasswd.c:55
+#: chkarchpasswd.c:53
 msgid "Check password of your mail attachment(*.zip), when you send mail."
 msgstr ""
 
-#: chkarchpasswd.c:82
-msgid "Toggle chkarchpasswd"
+#: chkarchpasswd.c:107
+msgid "Chkarchpasswd Option"
 msgstr ""
 
-#: chkarchpasswd.c:135
+#: chkarchpasswd.c:154
 msgid "Chkpasswd is enabled."
 msgstr ""
 
-#: chkarchpasswd.c:142
+#: chkarchpasswd.c:161
 msgid "Chkpasswd is disabled."
 msgstr ""
 
-#: chkarchpasswd.c:171 chkarchpasswd.c:175
+#: chkarchpasswd.c:194 chkarchpasswd.c:198
 msgid "Check Archive Password"
 msgstr ""
 
-#: chkarchpasswd.c:171
+#: chkarchpasswd.c:194
 msgid "chkarchpasswd plugin is enabled."
 msgstr ""
 
-#: chkarchpasswd.c:175
+#: chkarchpasswd.c:198
 msgid "chkarchpasswd plugin is disabled."
 msgstr ""
