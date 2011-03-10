@@ -455,11 +455,6 @@ static void compose_encrypt_toggled	(GtkWidget	*widget,
 					 Compose	*compose);
 #endif
 
-#if 0
-static void compose_attach_toggled	(GtkWidget	*widget,
-					 Compose	*compose);
-#endif
-
 static void compose_buffer_changed_cb	(GtkTextBuffer	*textbuf,
 					 Compose	*compose);
 static void compose_changed_cb		(GtkEditable	*editable,
@@ -563,182 +558,6 @@ static void text_inserted		(GtkTextBuffer	*buffer,
 static gboolean autosave_timeout	(gpointer	 data);
 
 
-#if 0
-static GtkItemFactoryEntry compose_popup_entries[] =
-{
-	{N_("/_Open"),		NULL, compose_attach_open_cb, 0, NULL},
-	{N_("/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_Add..."),	NULL, compose_attach_cb, 0, NULL},
-	{N_("/_Remove"),	NULL, compose_attach_remove_selected, 0, NULL},
-	{N_("/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_Properties..."),	NULL, compose_attach_property, 0, NULL}
-};
-
-static GtkItemFactoryEntry compose_entries[] =
-{
-	{N_("/_File"),				NULL, NULL, 0, "<Branch>"},
-	{N_("/_File/_Send"),			"<control>Return",
-						compose_send_cb, 0, NULL},
-	{N_("/_File/Send _later"),		"<shift><control>S",
-						compose_send_later_cb,  0, NULL},
-	{N_("/_File/---"),			NULL, NULL, 0, "<Separator>"},
-	{N_("/_File/Save to _draft folder"),
-						"<shift><control>D", compose_draft_cb, 0, NULL},
-	{N_("/_File/Save and _keep editing"),
-						"<control>S", compose_draft_cb, 1, NULL},
-	{N_("/_File/---"),			NULL, NULL, 0, "<Separator>"},
-	{N_("/_File/_Attach file"),		"<control>M", compose_attach_cb,      0, NULL},
-	{N_("/_File/_Insert file"),		"<control>I", compose_insert_file_cb, 0, NULL},
-	{N_("/_File/---"),			NULL, NULL, 0, "<Separator>"},
-	{N_("/_File/Insert si_gnature"),	"<control>G", compose_insert_sig_cb,  0, NULL},
-	{N_("/_File/A_ppend signature"),	"<shift><control>G", compose_insert_sig_cb,  1, NULL},
-	{N_("/_File/---"),			NULL, NULL, 0, "<Separator>"},
-	{N_("/_File/_Close"),			"<control>W", compose_close_cb, 0, NULL},
-
-	{N_("/_Edit"),			NULL, NULL, 0, "<Branch>"},
-	{N_("/_Edit/_Undo"),		"<control>Z", compose_undo_cb, 0, NULL},
-	{N_("/_Edit/_Redo"),		"<control>Y", compose_redo_cb, 0, NULL},
-	{N_("/_Edit/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_Edit/Cu_t"),		"<control>X", compose_cut_cb,    0, NULL},
-	{N_("/_Edit/_Copy"),		"<control>C", compose_copy_cb,   0, NULL},
-	{N_("/_Edit/_Paste"),		"<control>V", compose_paste_cb,  0, NULL},
-	{N_("/_Edit/Paste as _quotation"),
-					NULL, compose_paste_as_quote_cb, 0, NULL},
-	{N_("/_Edit/Select _all"),	"<control>A", compose_allsel_cb, 0, NULL},
-	{N_("/_Edit/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_Edit/_Wrap current paragraph"),
-					"<control>L", compose_wrap_cb, 0, NULL},
-	{N_("/_Edit/Wrap all long _lines"),
-					"<control><alt>L", compose_wrap_cb, 1, NULL},
-	{N_("/_Edit/Aut_o wrapping"),	"<shift><control>L", compose_toggle_autowrap_cb, 0, "<ToggleItem>"},
-	{N_("/_View"),			NULL, NULL, 0, "<Branch>"},
-	{N_("/_View/_To"),		NULL, compose_toggle_to_cb     , 0, "<ToggleItem>"},
-	{N_("/_View/_Cc"),		NULL, compose_toggle_cc_cb     , 0, "<ToggleItem>"},
-	{N_("/_View/_Bcc"),		NULL, compose_toggle_bcc_cb    , 0, "<ToggleItem>"},
-	{N_("/_View/_Reply-To"),	NULL, compose_toggle_replyto_cb, 0, "<ToggleItem>"},
-	{N_("/_View/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_View/_Followup-To"),	NULL, compose_toggle_followupto_cb, 0, "<ToggleItem>"},
-	{N_("/_View/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_View/R_uler"),		NULL, compose_toggle_ruler_cb, 0, "<ToggleItem>"},
-	{N_("/_View/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_View/_Attachment"),	NULL, compose_toggle_attach_cb, 0, "<ToggleItem>"},
-	{N_("/_View/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_View/Cu_stomize toolbar..."),
-					NULL, compose_customize_toolbar_cb, 0, NULL},
-	{N_("/_View/---"),		NULL, NULL, 0, "<Separator>"},
-    
-#define ENC_ACTION(action) \
-	NULL, compose_set_encoding_cb, action, \
-	"/View/Character encoding/Automatic"
-
-	{N_("/_View/Character _encoding"), NULL, NULL, 0, "<Branch>"},
-	{N_("/_View/Character _encoding/_Automatic"),
-			NULL, compose_set_encoding_cb, C_AUTO, "<RadioItem>"},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/7bit ascii (US-ASC_II)"),
-	 ENC_ACTION(C_US_ASCII)},
-	{N_("/_View/Character _encoding/Unicode (_UTF-8)"),
-	 ENC_ACTION(C_UTF_8)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Western European (ISO-8859-_1)"),
-	 ENC_ACTION(C_ISO_8859_1)},
-	{N_("/_View/Character _encoding/Western European (ISO-8859-15)"),
-	 ENC_ACTION(C_ISO_8859_15)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Central European (ISO-8859-_2)"),
-	 ENC_ACTION(C_ISO_8859_2)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/_Baltic (ISO-8859-13)"),
-	 ENC_ACTION(C_ISO_8859_13)},
-	{N_("/_View/Character _encoding/Baltic (ISO-8859-_4)"),
-	 ENC_ACTION(C_ISO_8859_4)},
-	{N_("/_View/Character _encoding/Baltic (Windows-1257)"),
-	 ENC_ACTION(C_WINDOWS_1257)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Greek (ISO-8859-_7)"),
-	 ENC_ACTION(C_ISO_8859_7)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Arabic (ISO-8859-_6)"),
-	 ENC_ACTION(C_ISO_8859_6)},
-	{N_("/_View/Character _encoding/Arabic (Windows-1256)"),
-	 ENC_ACTION(C_WINDOWS_1256)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Hebrew (ISO-8859-_8)"),
-	 ENC_ACTION(C_ISO_8859_8)},
-	{N_("/_View/Character _encoding/Hebrew (Windows-1255)"),
-	 ENC_ACTION(C_WINDOWS_1255)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Turkish (ISO-8859-_9)"),
-	 ENC_ACTION(C_ISO_8859_9)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Cyrillic (ISO-8859-_5)"),
-	 ENC_ACTION(C_ISO_8859_5)},
-	{N_("/_View/Character _encoding/Cyrillic (KOI8-_R)"),
-	 ENC_ACTION(C_KOI8_R)},
-	{N_("/_View/Character _encoding/Cyrillic (KOI8-U)"),
-	 ENC_ACTION(C_KOI8_U)},
-	{N_("/_View/Character _encoding/Cyrillic (Windows-1251)"),
-	 ENC_ACTION(C_WINDOWS_1251)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Japanese (ISO-2022-_JP)"),
-	 ENC_ACTION(C_ISO_2022_JP)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Simplified Chinese (_GB2312)"),
-	 ENC_ACTION(C_GB2312)},
-	{N_("/_View/Character _encoding/Simplified Chinese (GBK)"),
-	 ENC_ACTION(C_GBK)},
-	{N_("/_View/Character _encoding/Traditional Chinese (_Big5)"),
-	 ENC_ACTION(C_BIG5)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Korean (EUC-_KR)"),
-	 ENC_ACTION(C_EUC_KR)},
-	{N_("/_View/Character _encoding/---"), NULL, NULL, 0, "<Separator>"},
-
-	{N_("/_View/Character _encoding/Thai (TIS-620)"),
-	 ENC_ACTION(C_TIS_620)},
-	{N_("/_View/Character _encoding/Thai (Windows-874)"),
-	 ENC_ACTION(C_WINDOWS_874)},
-
-	{N_("/_Tools"),			NULL, NULL, 0, "<Branch>"},
-	{N_("/_Tools/_Address book"),	"<shift><control>A", compose_address_cb , 0, NULL},
-	{N_("/_Tools/_Template"),	NULL, NULL, 0, "<Branch>"},
-#ifndef G_OS_WIN32
-	{N_("/_Tools/Actio_ns"),	NULL, NULL, 0, "<Branch>"},
-#endif
-	{N_("/_Tools/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_Tools/Edit with e_xternal editor"),
-					"<shift><control>X", compose_ext_editor_cb, 0, NULL},
-	{N_("/_Tools/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_Tools/Request _disposition notification"),   	NULL, compose_toggle_mdn_cb   , 0, "<ToggleItem>"},
-
-#if USE_GPGME
-	{N_("/_Tools/---"),		NULL, NULL, 0, "<Separator>"},
-	{N_("/_Tools/PGP Si_gn"),   	NULL, compose_toggle_sign_cb   , 0, "<ToggleItem>"},
-	{N_("/_Tools/PGP _Encrypt"),	NULL, compose_toggle_encrypt_cb, 0, "<ToggleItem>"},
-#endif /* USE_GPGME */
-
-#if USE_GTKSPELL
-	{N_("/_Tools/---"),			NULL, NULL, 0, "<Separator>"},
-	{N_("/_Tools/_Check spell"),		NULL, compose_toggle_spell_cb, 0, "<ToggleItem>"},
-	{N_("/_Tools/_Set spell language"),	NULL, NULL, 0, "<Branch>"},
-#endif /* USE_GTKSPELL */
-
-	{N_("/_Help"),			NULL, NULL, 0, "<Branch>"},
-	{N_("/_Help/_About"),		NULL, about_show, 0, NULL}
-};
-#endif
 
 #if 0
 enum
@@ -2988,6 +2807,7 @@ static gboolean compose_check_entries(Compose *compose)
 
 	if (compose_check_for_valid_recipient(compose) == FALSE) {
 #if 0
+        
 		alertpanel_error(_("Recipient is not specified."));
 #endif
 		return FALSE;
