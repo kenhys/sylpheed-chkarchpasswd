@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: chkarchpasswd\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-08 19:58+0900\n"
+"POT-Creation-Date: 2011-06-09 00:15+0900\n"
 "PO-Revision-Date: 2011-03-07 10:19+0900\n"
 "Last-Translator: <kenhys@gmail.com>\n"
 "Language-Team: Japanese\n"
@@ -26,9 +26,8 @@ msgid "Check password of your mail attachment(*.zip), when you send mail."
 msgstr "送信時に添付ファイル(zip)のパスワードをチェックします。"
 
 #: chkarchpasswd.c:106
-#, fuzzy
-msgid "Chkarchpasswd Option"
-msgstr "送信時パスワードチェックプラグイン 設定"
+msgid "Chkarchpasswd Settings [chkarchpasswd]"
+msgstr ""
 
 #: chkarchpasswd.c:148
 msgid "Chkpasswd is enabled."
@@ -78,14 +77,16 @@ msgid "password is not empty. sending mail..."
 msgstr ""
 
 #: chkarchpasswd.c:447
-msgid "password is empty. do you want to send email without password?"
+msgid "attachment password is empty. Do you want to send?"
 msgstr ""
 
 #: chkarchpasswd.c:452
-msgid ""
-"password is empty. do you really want to send this attachment without "
-"password?"
+msgid "attachment password is empty. Do you really want to send?"
 msgstr ""
+
+#, fuzzy
+#~ msgid "Chkarchpasswd Option"
+#~ msgstr "送信時パスワードチェックプラグイン 設定"
 
 #~ msgid "Toggle chkarchpasswd"
 #~ msgstr "送信時パスワードチェックプラグイン 有効化/無効化"

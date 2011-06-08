@@ -53,7 +53,7 @@
 
 static SylPluginInfo info = {
     N_(PLUGIN_NAME),
-    "0.4.0",
+    "0.5.0",
     "HAYASHI Kentaro",
     N_(PLUGIN_DESC)
 };
@@ -103,7 +103,7 @@ void plugin_load(void)
   info.description = g_strdup(_(PLUGIN_DESC));
   
   syl_plugin_add_menuitem("/Tools", NULL, NULL, NULL);
-  syl_plugin_add_menuitem("/Tools", _("Chkarchpasswd Option"), exec_chkarchpasswd_menu_cb, NULL);
+  syl_plugin_add_menuitem("/Tools", _("Chkarchpasswd Settings [chkarchpasswd]"), exec_chkarchpasswd_menu_cb, NULL);
 
   syl_plugin_signal_connect("compose-created", G_CALLBACK(compose_created_cb), NULL);
 
@@ -199,25 +199,27 @@ static void exec_chkarchpasswd_menu_cb(void)
 static void exec_chkarchpasswd_onoff_cb(void)
 {
 
-    if (g_enable != TRUE){
-        syl_plugin_alertpanel_message(_("Chkarchpasswd"), _("chkarchpasswd plugin is enabled."), ALERT_NOTICE);
-        g_enable=TRUE;
-        gtk_widget_hide(g_plugin_off);
-        gtk_widget_show(g_plugin_on);
-        gtk_tooltips_set_tip
-			(g_tooltip, g_onoff_switch,
-			 _("Chkarchpasswd is enabled. Click the icon to disable plugin."),
-			 NULL);
-    }else{
-        syl_plugin_alertpanel_message(_("Chkarchpasswd"), _("chkarchpasswd plugin is disabled."), ALERT_NOTICE);
-        g_enable=FALSE;
-        gtk_widget_hide(g_plugin_on);
-        gtk_widget_show(g_plugin_off);
-        gtk_tooltips_set_tip
-			(g_tooltip, g_onoff_switch,
-			 _("Chkarchpasswd is disabled. Click the icon to enable plugin."),
-			 NULL);
+  if (g_enable != TRUE){
+    if (g_hdll!=NULL){
+      syl_plugin_alertpanel_message(_("Chkarchpasswd"), _("chkarchpasswd plugin is enabled."), ALERT_NOTICE);
+      g_enable=TRUE;
+      gtk_widget_hide(g_plugin_off);
+      gtk_widget_show(g_plugin_on);
+      gtk_tooltips_set_tip
+        (g_tooltip, g_onoff_switch,
+         _("Chkarchpasswd is enabled. Click the icon to disable plugin."),
+         NULL);
     }
+  }else{
+    syl_plugin_alertpanel_message(_("Chkarchpasswd"), _("chkarchpasswd plugin is disabled."), ALERT_NOTICE);
+    g_enable=FALSE;
+    gtk_widget_hide(g_plugin_on);
+    gtk_widget_show(g_plugin_off);
+    gtk_tooltips_set_tip
+      (g_tooltip, g_onoff_switch,
+       _("Chkarchpasswd is disabled. Click the icon to enable plugin."),
+       NULL);
+  }
 }
 
 static Compose* g_compose = NULL;
@@ -444,12 +446,12 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
 #endif
     bsend = TRUE;
   }else if (npasstotal > 0 && npassok < npasstotal){
-    gint val = syl_plugin_alertpanel("", _("password is empty. Are you OK?"),
+    gint val = syl_plugin_alertpanel("", _("attachment password is empty. Do you want to send?"),
                                      GTK_STOCK_YES, GTK_STOCK_NO, NULL);
     if (val != 0){
       return FALSE;
     }
-    val = syl_plugin_alertpanel("", _("password is empty. Are you OK without attachement password?"),
+    val = syl_plugin_alertpanel("", _("attachment password is empty. Do you really want to send?"),
                                 GTK_STOCK_NO, GTK_STOCK_YES, NULL);
     if (val == 0){
       return FALSE;

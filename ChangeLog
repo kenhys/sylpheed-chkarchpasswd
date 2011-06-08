@@ -1,3 +1,7 @@
+2011-06-08 HAYASHI Kentaro <kenhys@gmail.com>
+	* version 0.5.0
+	  use official compose-send API.
+	
 2011-03-08 HAYASHI Kentaro <kenhys@gmail.com>
 	
 	* version 0.4.0

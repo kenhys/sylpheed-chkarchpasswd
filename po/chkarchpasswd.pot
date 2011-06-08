@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-08 19:58+0900\n"
+"POT-Creation-Date: 2011-06-09 00:15+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,7 +25,7 @@ msgid "Check password of your mail attachment(*.zip), when you send mail."
 msgstr ""
 
 #: chkarchpasswd.c:106
-msgid "Chkarchpasswd Option"
+msgid "Chkarchpasswd Settings [chkarchpasswd]"
 msgstr ""
 
 #: chkarchpasswd.c:148
@@ -75,11 +75,9 @@ msgid "password is not empty. sending mail..."
 msgstr ""
 
 #: chkarchpasswd.c:447
-msgid "password is empty. do you want to send email without password?"
+msgid "attachment password is empty. Do you want to send?"
 msgstr ""
 
 #: chkarchpasswd.c:452
-msgid ""
-"password is empty. do you really want to send this attachment without "
-"password?"
+msgid "attachment password is empty. Do you really want to send?"
 msgstr ""

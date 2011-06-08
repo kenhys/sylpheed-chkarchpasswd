@@ -102,7 +102,17 @@ if [ ! -z "$1" ]; then
           echo $com
           eval $com
           ;;
-  esac
+      release)
+          zip sylpheed-chkarchpasswd-$2.zip chkarchpasswd.dll
+          zip -r sylpheed-chkarchpasswd-$2.zip README.ja.txt
+          zip -r sylpheed-chkarchpasswd-$2.zip ChangeLog
+          #zip -r sylpheed-chkarchpasswd-$2.zip chkarchpasswd.c
+          zip -r sylpheed-chkarchpasswd-$2.zip po/chkarchpasswd.mo
+          zip -r sylpheed-chkarchpasswd-$2.zip *.xpm
+          sha1sum sylpheed-chkarchpasswd-$2.zip > sylpheed-chkarchpasswd-$2.zip.sha1sum
+          
+          ;;
+esac
   echo $com
   eval $com
 fi
