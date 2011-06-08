@@ -444,12 +444,12 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
 #endif
     bsend = TRUE;
   }else if (npasstotal > 0 && npassok < npasstotal){
-    gint val = syl_plugin_alertpanel("", _("password is empty. do you want to send email without password?"),
+    gint val = syl_plugin_alertpanel("", _("password is empty. Are you OK?"),
                                      GTK_STOCK_YES, GTK_STOCK_NO, NULL);
     if (val != 0){
       return FALSE;
     }
-    val = syl_plugin_alertpanel("", _("password is empty. do you really want to send this attachment without password?"),
+    val = syl_plugin_alertpanel("", _("password is empty. Are you OK without attachement password?"),
                                 GTK_STOCK_NO, GTK_STOCK_YES, NULL);
     if (val == 0){
       return FALSE;
