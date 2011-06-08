@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-09 18:47+0900\n"
+"POT-Creation-Date: 2011-06-08 19:58+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,34 +16,70 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: chkarchpasswd.c:52
+#: chkarchpasswd.c:51
 msgid "Check attachment password Plug-in"
 msgstr ""
 
-#: chkarchpasswd.c:53
+#: chkarchpasswd.c:52
 msgid "Check password of your mail attachment(*.zip), when you send mail."
 msgstr ""
 
-#: chkarchpasswd.c:107
+#: chkarchpasswd.c:106
 msgid "Chkarchpasswd Option"
 msgstr ""
 
-#: chkarchpasswd.c:154
+#: chkarchpasswd.c:148
 msgid "Chkpasswd is enabled."
 msgstr ""
 
-#: chkarchpasswd.c:161
+#: chkarchpasswd.c:155
 msgid "Chkpasswd is disabled."
 msgstr ""
 
-#: chkarchpasswd.c:194 chkarchpasswd.c:198
+#: chkarchpasswd.c:188 chkarchpasswd.c:192
 msgid "Check Archive Password"
 msgstr ""
 
-#: chkarchpasswd.c:194
+#: chkarchpasswd.c:188 chkarchpasswd.c:203
 msgid "chkarchpasswd plugin is enabled."
 msgstr ""
 
-#: chkarchpasswd.c:198
+#: chkarchpasswd.c:192 chkarchpasswd.c:212
 msgid "chkarchpasswd plugin is disabled."
+msgstr ""
+
+#: chkarchpasswd.c:203 chkarchpasswd.c:212
+msgid "Chkarchpasswd"
+msgstr ""
+
+#: chkarchpasswd.c:209
+msgid "Chkarchpasswd is enabled. Click the icon to disable plugin."
+msgstr ""
+
+#: chkarchpasswd.c:218
+msgid "Chkarchpasswd is disabled. Click the icon to enable plugin."
+msgstr ""
+
+#: chkarchpasswd.c:375
+#, c-format
+msgid "enter password for attachment(%s)."
+msgstr ""
+
+#: chkarchpasswd.c:428
+#, c-format
+msgid "attachment(%s) password (%s) is described in mail body."
+msgstr ""
+
+#: chkarchpasswd.c:442
+msgid "password is not empty. sending mail..."
+msgstr ""
+
+#: chkarchpasswd.c:447
+msgid "password is empty. do you want to send email without password?"
+msgstr ""
+
+#: chkarchpasswd.c:452
+msgid ""
+"password is empty. do you really want to send this attachment without "
+"password?"
 msgstr ""

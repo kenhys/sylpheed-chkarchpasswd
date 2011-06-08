@@ -1,5 +1,6 @@
 
 TARGET=chkarchpasswd.dll
+NAME=chkarchpasswd
 OBJS=chkarchpasswd.o 
 LIBSYLPH=./lib/libsylph-0-1.a
 LIBSYLPHEED=./lib/libsylpheed-plugin-0-1.a
@@ -72,6 +73,15 @@ if [ ! -z "$1" ]; then
           ;;
       mo)
           com="msgfmt po/ja.po -o po/chkarchpasswd.mo"
+          echo $com
+          eval $com
+          DEST="/C/apps/Sylpheed/lib/locale/ja/LC_MESSAGES"
+          if [ -d "$DEST" ]; then
+              com="cp po/$NAME.mo $DEST/$NAME.mo"
+              echo $com
+              eval $com
+          fi
+          exit
           ;;
       scan)
           com="gcc -Wall $DEF $INC testgscanner.c -o testgscanner.exe $LIBS"

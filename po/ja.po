@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: chkarchpasswd\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-09 18:47+0900\n"
+"POT-Creation-Date: 2011-06-08 19:58+0900\n"
 "PO-Revision-Date: 2011-03-07 10:19+0900\n"
 "Last-Translator: <kenhys@gmail.com>\n"
 "Language-Team: Japanese\n"
@@ -17,38 +17,75 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: chkarchpasswd.c:52
+#: chkarchpasswd.c:51
 msgid "Check attachment password Plug-in"
 msgstr "送信時パスワードチェックプラグイン"
 
-#: chkarchpasswd.c:53
+#: chkarchpasswd.c:52
 msgid "Check password of your mail attachment(*.zip), when you send mail."
 msgstr "送信時に添付ファイル(zip)のパスワードをチェックします。"
 
-#: chkarchpasswd.c:107
+#: chkarchpasswd.c:106
 #, fuzzy
 msgid "Chkarchpasswd Option"
 msgstr "送信時パスワードチェックプラグイン 設定"
 
-#: chkarchpasswd.c:154
+#: chkarchpasswd.c:148
 msgid "Chkpasswd is enabled."
 msgstr "送信時パスワードチェックプラグインを有効化しました。"
 
-#: chkarchpasswd.c:161
+#: chkarchpasswd.c:155
 msgid "Chkpasswd is disabled."
 msgstr "送信時パスワードチェックプラグインを無効化しました。"
 
-#: chkarchpasswd.c:194 chkarchpasswd.c:198
+#: chkarchpasswd.c:188 chkarchpasswd.c:192
 msgid "Check Archive Password"
 msgstr ""
 
-#: chkarchpasswd.c:194
+#: chkarchpasswd.c:188 chkarchpasswd.c:203
 msgid "chkarchpasswd plugin is enabled."
 msgstr "送信時パスワードチェックプラグインを有効化しました。"
 
-#: chkarchpasswd.c:198
+#: chkarchpasswd.c:192 chkarchpasswd.c:212
 msgid "chkarchpasswd plugin is disabled."
 msgstr "送信時パスワードチェックプラグインを無効化しました。"
+
+#: chkarchpasswd.c:203 chkarchpasswd.c:212
+#, fuzzy
+msgid "Chkarchpasswd"
+msgstr "送信時パスワードチェックプラグイン 設定"
+
+#: chkarchpasswd.c:209
+msgid "Chkarchpasswd is enabled. Click the icon to disable plugin."
+msgstr ""
+
+#: chkarchpasswd.c:218
+msgid "Chkarchpasswd is disabled. Click the icon to enable plugin."
+msgstr ""
+
+#: chkarchpasswd.c:375
+#, c-format
+msgid "enter password for attachment(%s)."
+msgstr ""
+
+#: chkarchpasswd.c:428
+#, c-format
+msgid "attachment(%s) password (%s) is described in mail body."
+msgstr ""
+
+#: chkarchpasswd.c:442
+msgid "password is not empty. sending mail..."
+msgstr ""
+
+#: chkarchpasswd.c:447
+msgid "password is empty. do you want to send email without password?"
+msgstr ""
+
+#: chkarchpasswd.c:452
+msgid ""
+"password is empty. do you really want to send this attachment without "
+"password?"
+msgstr ""
 
 #~ msgid "Toggle chkarchpasswd"
 #~ msgstr "送信時パスワードチェックプラグイン 有効化/無効化"

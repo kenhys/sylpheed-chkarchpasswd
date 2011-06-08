@@ -372,12 +372,12 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
 
 
 #if 0
-          gchar *msg=g_strdup_printf("添付ファイル(%s)のパスワードを入力してください。", ainfo->name);
-          gchar *passwd= syl_plugin_input_dialog("パスワード", msg, "guest");
+          gchar *msg=g_strdup_printf(_("enter password for attachment(%s).", ainfo->name);
+          gchar *passwd= syl_plugin_input_dialog("password", msg, "guest");
           
           if (passwd==NULL){
-              msg=g_strdup_printf("添付ファイル(%s)のパスワードチェックをスキップします。", ainfo->name);
-              syl_plugin_alertpanel("情報", msg, GTK_STOCK_OK,NULL, NULL);
+            msg=g_strdup_printf("skip password check for attachement(%s)", ainfo->name);
+              syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
               continue;
           }
 #endif
@@ -439,7 +439,7 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
   gboolean bsend = FALSE;
   if ( npasstotal > 0 && npassok == npasstotal){
 #if 0
-    syl_plugin_alertpanel("", _("パスワードが設定されていることを確認しました。メールを送信します。"),
+    syl_plugin_alertpanel("", _("password is not empty. sending mail..."),
                                     GTK_STOCK_OK,NULL, NULL);
 #endif
     bsend = TRUE;
