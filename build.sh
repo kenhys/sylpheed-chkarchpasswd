@@ -30,6 +30,23 @@ if [ -z "$1" ]; then
     com="gcc -shared -o $TARGET $OBJS -L./lib $LIBSYLPH $LIBSYLPHEED $LIBS -lssleay32 -leay32 -lws2_32 -liconv "
     echo $com
     eval $com
+    if [ $? != 0 ]; then
+        echo "done"
+    else
+        DEST="/C/Users/$LOGNAME/AppData/Roaming/Sylpheed/plugins"
+        if [ -d "$DEST" ]; then
+            com="cp $TARGET $DEST/$TARGET"
+            echo $com
+            eval $com
+        else
+            DEST="/C/Documents and Settings/$LOGNAME/Application Data/Sylpheed/plugins"
+            if [ -d "$DEST" ]; then
+                com="cp $TARGET \"$DEST/$TARGET\""
+                echo $com
+                eval $com
+            fi
+        fi
+    fi
 
 fi
 
@@ -58,6 +75,22 @@ if [ ! -z "$1" ]; then
           ;;
       scan)
           com="gcc -Wall $DEF $INC testgscanner.c -o testgscanner.exe $LIBS"
+          ;;
+      def)
+          PKG=libsylph-0-1
+          com="(cd lib;pexports $PKG.dll > $PKG.dll.def)"
+          echo $com
+          eval $com
+          com="(cd lib;dlltool --dllname $PKG.dll --input-def $PKG.dll.def --output-lib $PKG.a)"
+          echo $com
+          eval $com
+          com="(cd lib;pexports $PKG.dll > $PKG.dll.def)"
+          echo $com
+          eval $com
+          PKG=libsylpheed-plugin-0-1
+          com="(cd lib;dlltool --dllname $PKG.dll --input-def $PKG.dll.def --output-lib $PKG.a)"
+          echo $com
+          eval $com
           ;;
   esac
   echo $com

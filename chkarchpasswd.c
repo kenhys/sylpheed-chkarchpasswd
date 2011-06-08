@@ -43,7 +43,6 @@
 
 #include <glib/gi18n-lib.h>
 #include <locale.h>
-#include "compose.c"
 
 #define _(String)   dgettext("chkarchpasswd", String)
 #define N_(String)  gettext_noop(String)
@@ -61,11 +60,12 @@ static SylPluginInfo info = {
 
 static void exec_chkarchpasswd_cb(GObject *obj, FolderItem *item, const gchar *file, guint num);
 static void exec_chkarchpasswd_menu_cb(void);
+static void exec_chkarchpasswd_onoff_cb(void);
 static void compose_created_cb(GObject *obj, gpointer compose);
 static void compose_destroy_cb(GObject *obj, gpointer compose);
-static gboolean mycompose_send_cb(GObject *obj, gpointer compose);
-static gboolean mycompose_sendl_cb(GObject *obj, gpointer compose);
-
+static gboolean compose_send_cb(GObject *obj, gpointer compose,
+                                gint compose_mode, gint send_mode,
+                                const gchar *msg_file, GSList *to_list);
 typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
 typedef BOOL WINAPI (*WINAPI_SEVENZIPSETUNICODEMODE)(BOOL _bUnicode);
 
@@ -95,7 +95,6 @@ void plugin_load(void)
   }
 
   syl_init_gettext("chkarchpasswd", "lib/locale");
-  /*textdomain("chkarchpasswd");*/
 
   debug_print(gettext(PLUGIN_NAME));
   debug_print(dgettext("chkarchpasswd", PLUGIN_DESC));
@@ -110,14 +109,11 @@ void plugin_load(void)
 
   syl_plugin_signal_connect("compose-destroy", G_CALLBACK(compose_destroy_cb), NULL);
 
-#if 0
   syl_plugin_signal_connect("compose-send", G_CALLBACK(compose_send_cb), NULL);
 
-  syl_plugin_signal_connect("compose-sendl", G_CALLBACK(compose_sendl_cb), NULL);
-#endif
-
+  GtkWidget *mainwin = syl_plugin_main_window_get();
   GtkWidget *statusbar = syl_plugin_main_window_get_statusbar();
-    GtkWidget *plugin_box = gtk_hbox_new(FALSE, 0);
+  GtkWidget *plugin_box = gtk_hbox_new(FALSE, 0);
 
     GdkPixbuf* on_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_add);
     g_plugin_on=gtk_image_new_from_pixbuf(on_pixbuf);
@@ -138,10 +134,8 @@ void plugin_load(void)
 	gtk_widget_set_size_request(g_onoff_switch, 20, 20);
 
     gtk_container_add(GTK_CONTAINER(g_onoff_switch), plugin_box);
-#if 0
 	g_signal_connect(G_OBJECT(g_onoff_switch), "clicked",
-                     G_CALLBACK(exec_autoforward_menu_cb), mainwin);
-#endif
+                     G_CALLBACK(exec_chkarchpasswd_onoff_cb), mainwin);
     gtk_box_pack_start(GTK_BOX(statusbar), g_onoff_switch, FALSE, FALSE, 0);
 
     gtk_widget_show_all(g_onoff_switch);
@@ -202,21 +196,29 @@ static void exec_chkarchpasswd_menu_cb(void)
 #endif
 }
 
-#if 0
-static gboolean send_button_press(GtkWidget	*widget,
-                                  GdkEventButton	*event,
-                                  gpointer	 data);
+static void exec_chkarchpasswd_onoff_cb(void)
+{
 
-static gulong g_hook_id = 0;
-
-/* global button-press-event signal id */
-static guint g_signal_id = 0;
-
-static GtkToolItem *g_sendbtn = NULL;
-
-/* original button handler id. */
-static gulong g_sendbtn_id = 0;
-#endif
+    if (g_enable != TRUE){
+        syl_plugin_alertpanel_message(_("Chkarchpasswd"), _("chkarchpasswd plugin is enabled."), ALERT_NOTICE);
+        g_enable=TRUE;
+        gtk_widget_hide(g_plugin_off);
+        gtk_widget_show(g_plugin_on);
+        gtk_tooltips_set_tip
+			(g_tooltip, g_onoff_switch,
+			 _("Chkarchpasswd is enabled. Click the icon to disable plugin."),
+			 NULL);
+    }else{
+        syl_plugin_alertpanel_message(_("Chkarchpasswd"), _("chkarchpasswd plugin is disabled."), ALERT_NOTICE);
+        g_enable=FALSE;
+        gtk_widget_hide(g_plugin_on);
+        gtk_widget_show(g_plugin_off);
+        gtk_tooltips_set_tip
+			(g_tooltip, g_onoff_switch,
+			 _("Chkarchpasswd is disabled. Click the icon to enable plugin."),
+			 NULL);
+    }
+}
 
 static Compose* g_compose = NULL;
 
@@ -244,51 +246,6 @@ void compose_created_cb(GObject *obj, gpointer compose)
   gtk_widget_show_all(toolbar);
 #endif
   
-  /* remove orignal callback from plugin. dirty hack. */
-  guint signal_id;
-  guint nmatch = 0;
-  int btn_index = 0;
-  for (btn_index = 0; btn_index <= 1; btn_index++){
-      toolitem = gtk_toolbar_get_nth_item(GTK_TOOLBAR(toolbar), btn_index);
-
-      signal_id = g_signal_lookup("button_press_event", GTK_TYPE_BUTTON);
-      debug_print("signal_id:%d\n", signal_id);
-
-      nmatch += g_signal_handlers_disconnect_matched(G_OBJECT(GTK_BIN(toolitem)->child),
-                                                          G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_DATA,
-                                                          signal_id, 0,
-                                                          NULL, NULL, compose);
-      debug_print("removed:%d\n", nmatch);
-
-      signal_id = g_signal_lookup("clicked", GTK_TYPE_TOOL_BUTTON);
-      debug_print("signal_id:%d\n", signal_id);
-
-      nmatch += g_signal_handlers_disconnect_matched(G_OBJECT(toolitem),
-                                                    G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_DATA,
-                                                    signal_id, 0,
-                                                    NULL, NULL, compose);
-      debug_print("removed:%d\n", nmatch);
-  }
-  
-  if (nmatch == 4){
-      toolitem = gtk_toolbar_get_nth_item(GTK_TOOLBAR(toolbar), 0);
-      
-      g_signal_connect(G_OBJECT(toolitem), "clicked",
-                   G_CALLBACK(mycompose_send_cb), compose);
-      g_signal_connect(G_OBJECT(GTK_BIN(toolitem)->child),
-                   "button_press_event",
-                   G_CALLBACK(mycompose_send_cb), compose);
-      toolitem = gtk_toolbar_get_nth_item(GTK_TOOLBAR(toolbar), 1);
-      
-      g_signal_connect(G_OBJECT(toolitem), "clicked",
-                   G_CALLBACK(mycompose_sendl_cb), compose);
-      g_signal_connect(G_OBJECT(GTK_BIN(toolitem)->child),
-                   "button_press_event",
-                   G_CALLBACK(mycompose_sendl_cb), compose);
-  }
-  debug_print("Compose*:%p\n", g_compose);
-  debug_print("compose:%p\n", compose);
-  debug_print("model:%p\n", GTK_TREE_MODEL(g_compose->attach_store));
 }
 
 void compose_destroy_cb(GObject *obj, gpointer compose)
@@ -298,9 +255,12 @@ void compose_destroy_cb(GObject *obj, gpointer compose)
   /**/
 }
 
-gboolean mycompose_send_cb(GObject *obj, gpointer compose)
+static gboolean compose_send_cb(GObject *obj, gpointer compose,
+                                gint compose_mode, gint send_mode,
+                                const gchar *msg_file, GSList *to_list)
 {
-  debug_print("[PLUGIN] mycompose_send_cb is called.\n");
+
+  debug_print("[PLUGIN] compose_send_cb is called.\n");
 
   debug_print("Compose* g_compose:%p\n", g_compose);
   debug_print("gpointer compose:%p\n", compose);
@@ -402,7 +362,8 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
       gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
       /* see 3 as COL_ATTACH_INFO in compose.c */
-      if (memcmp("application/zip", ainfo->content_type, sizeof("application/zip")) == 0) {
+      if (memcmp("application/zip", ainfo->content_type, sizeof("application/zip")) == 0 ||
+          memcmp("application/octet-stream", ainfo->content_type, sizeof("application/octet-stream")) == 0) {
           npasstotal += 1;
           debug_print("file:%s\n", ainfo->file);
           debug_print("content_type:%s\n", ainfo->content_type);
@@ -464,10 +425,10 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
                 if (nblank == 0x00000000){
                   g_print("%s blank password result:%08x\n", ainfo->name,nblank);
                   bmatch = TRUE;
-                  msg=g_strdup_printf("メール本文に%sのパスワード(%s)が含まれています。",
+                  msg=g_strdup_printf(_("attachment(%s) password (%s) is described in mail body."),
                                       ainfo->name, passwd);
-                  syl_plugin_alertpanel("警告", msg, GTK_STOCK_OK,NULL, NULL);
-                  return TRUE;
+                  syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
+                  return FALSE;
                 }
               }
               npassok += 1;
@@ -478,56 +439,29 @@ gboolean mycompose_send_cb(GObject *obj, gpointer compose)
   gboolean bsend = FALSE;
   if ( npasstotal > 0 && npassok == npasstotal){
 #if 0
-      syl_plugin_alertpanel("情報", "パスワードが設定されていることを確認しました。メールを送信します。",
+    syl_plugin_alertpanel("", _("パスワードが設定されていることを確認しました。メールを送信します。"),
                                     GTK_STOCK_OK,NULL, NULL);
 #endif
-      bsend = TRUE;
+    bsend = TRUE;
   }else if (npasstotal > 0 && npassok < npasstotal){
-      gint val = syl_plugin_alertpanel("警告", "パスワードが設定されていません。このままメールを送信しますか?",
-                                       GTK_STOCK_YES, GTK_STOCK_NO, NULL);
-      if (val != 0){
-          return TRUE;
-      }
-      val = syl_plugin_alertpanel("警告", "パスワードが設定されていないことを承知でメールを送信しますか?",
-                                  GTK_STOCK_NO, GTK_STOCK_YES, NULL);
-      if (val == 0){
-          return TRUE;
-      }
-      bsend = TRUE;
+    gint val = syl_plugin_alertpanel("", _("password is empty. do you want to send email without password?"),
+                                     GTK_STOCK_YES, GTK_STOCK_NO, NULL);
+    if (val != 0){
+      return FALSE;
+    }
+    val = syl_plugin_alertpanel("", _("password is empty. do you really want to send this attachment without password?"),
+                                GTK_STOCK_NO, GTK_STOCK_YES, NULL);
+    if (val == 0){
+      return FALSE;
+    }
+    bsend = TRUE;
   }else if (npasstotal == 0){
       bsend = TRUE;
   }else{
-      syl_plugin_alertpanel("警告", "エラーがあるようです。送信を中止しました。",
+      syl_plugin_alertpanel("", "abort to sending email.",
                             GTK_STOCK_OK, NULL, NULL);
   }
-  if (bsend){
-      gtk_widget_set_sensitive(g_compose->vbox, FALSE);
-      val = compose_send(g_compose);
-      gtk_widget_set_sensitive(g_compose->vbox, TRUE);
-
-      if (val == 0){
-          compose_destroy(g_compose);
-      }
-  }
-  /* stop furthor event handling. */
-  return TRUE;
+  g_print("compose_send_cb:%s\n", bsend ? "TRUE" : "FALSE");
+  return bsend;
 }
 
-gboolean mycompose_sendl_cb(GObject *obj, gpointer compose)
-{
-  debug_print("[PLUGIN] mycompose_sendl_cb is called.\n");
-  /* stop furthor event handling. */
-  return TRUE;
-}
-
-#if 0
-gboolean send_button_press(GtkWidget	*widget,
-                           GdkEventButton	*event,
-                           gpointer	 data)
-{
-  debug_print("[PLUGIN] send_button_press.\n");
-
-  /* stop furthor event handling. */
-  return TRUE;
-}
-#endif
