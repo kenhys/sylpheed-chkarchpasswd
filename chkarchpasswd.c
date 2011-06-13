@@ -44,7 +44,8 @@
 #include <glib/gi18n-lib.h>
 #include <locale.h>
 
-#define _(String)   dgettext("chkarchpasswd", String)
+#define CHKARCHPASSWD "chkarchpasswd"
+#define _(String)   dgettext(CHKARCHPASSWD, String)
 #define N_(String)  gettext_noop(String)
 #define gettext_noop(String) (String)
 
@@ -66,6 +67,9 @@ static void compose_destroy_cb(GObject *obj, gpointer compose);
 static gboolean compose_send_cb(GObject *obj, gpointer compose,
                                 gint compose_mode, gint send_mode,
                                 const gchar *msg_file, GSList *to_list);
+static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey);
+static GtkWidget *create_config_about_page(GtkWidget *notebook, GKeyFile *pkey);
+
 typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
 typedef BOOL WINAPI (*WINAPI_SEVENZIPSETUNICODEMODE)(BOOL _bUnicode);
 
@@ -77,6 +81,56 @@ static GtkWidget *g_plugin_on = NULL;
 static GtkWidget *g_plugin_off = NULL;
 static GtkWidget *g_onoff_switch = NULL;
 static GtkTooltips *g_tooltip = NULL;
+
+struct _ChkArchPasswdOption {
+  /* General section */
+
+  /* full path to ghostbiffrc*/
+  gchar *rcpath;
+  /* rcfile */
+  GKeyFile *rcfile;
+
+  /* startup check in general */
+  GtkWidget *chk_startup;
+  /* check twice when you send email without password. */
+  GtkWidget *chk_twice;
+  /* check encrypted attachment password */
+  GtkWidget *chk_passwd;
+
+  gboolean enable_aquest;
+
+  GtkWidget *aq_dic_entry;
+  GtkWidget *aq_dic_btn;
+  GtkWidget *phont_entry;
+  GtkWidget *phont_btn;
+  GtkWidget *phont_cmb;
+  GtkWidget *new_subject_btn;
+  GtkWidget *new_content_btn;
+  GtkWidget *show_subject_btn;
+  GtkWidget *show_content_btn;
+  GtkWidget *input_entry;
+
+#ifdef DEBUG
+  /* debug inbox folder */
+  GtkWidget *dfolder_entry;
+#endif
+};
+
+typedef struct _ChkArchPasswdOption ChkArchPasswdOption;
+
+static ChkArchPasswdOption g_opt;
+
+static gchar* g_copyright = N_("Chkarchpasswd is distributed under GPL license.\n"
+"\n"
+"Copyright (C) 2011 HAYASHI Kentaro <kenhys@gmail.com>"
+"\n"
+"chkarchpasswd contains following resource.\n"
+"\n"
+"Silk icon set 1.3: Copyright (C) Mark James\n"
+"Licensed under a Creative Commons Attribution 2.5 License.\n"
+"http://www.famfamfam.com/lab/icons/silk/\n"
+                               "\n"
+                               );
 
 void plugin_load(void)
 {
@@ -184,21 +238,97 @@ gint plugin_interface_version(void)
 
 static gboolean g_enable = FALSE;
 
+ static void prefs_ok_cb(GtkWidget *widget, gpointer data)
+{
+
+  g_key_file_load_from_file(g_opt.rcfile, g_opt.rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL);
+
+  gboolean status = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_opt.chk_startup));
+  g_key_file_set_boolean (g_opt.rcfile, CHKARCHPASSWD, "startup", status);
+  debug_print("startup:%s\n", status ? "TRUE" : "FALSE");
+
+  status = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_opt.chk_twice));
+  g_key_file_set_boolean (g_opt.rcfile, CHKARCHPASSWD, "twice", status);
+  debug_print("check twice:%s\n", status ? "TRUE" : "FALSE");
+
+  status = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_opt.chk_passwd));
+  g_key_file_set_boolean (g_opt.rcfile, CHKARCHPASSWD, "passwd", status);
+  debug_print("check passwd:%s\n", status ? "TRUE" : "FALSE");
+
+  /**/
+  gsize sz;
+  gchar *buf=g_key_file_to_data(g_opt.rcfile, &sz, NULL);
+  g_file_set_contents(g_opt.rcpath, buf, sz, NULL);
+    
+  gtk_widget_destroy(GTK_WIDGET(data));
+}
+
+static void prefs_cancel_cb(GtkWidget *widget, gpointer data)
+{
+  gtk_widget_destroy(GTK_WIDGET(data));
+}
+
+
 static void exec_chkarchpasswd_menu_cb(void)
 {
   debug_print("[PLUGIN] exec_chkarchpasswd_menu_cb is called.\n");
 
-#if 0
-  if (g_enable != TRUE){
-    syl_plugin_alertpanel_message(_("Check Archive Password"), _("chkarchpasswd plugin is enabled."), ALERT_NOTICE);
-    debug_print("[PLUGIN] enable exec_chkarchpasswd_cb\n");
-    g_enable=TRUE;
-  }else{
-    syl_plugin_alertpanel_message(_("Check Archive Password"), _("chkarchpasswd plugin is disabled."), ALERT_NOTICE);
-    debug_print("[PLUGIN] disable exec_chkarchpasswd_cb\n");
-    g_enable=FALSE;
-  }
-#endif
+  /* show modal dialog */
+  GtkWidget *window;
+  GtkWidget *vbox;
+  GtkWidget *confirm_area;
+  GtkWidget *ok_btn;
+  GtkWidget *cancel_btn;
+
+  window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_container_set_border_width(GTK_CONTAINER(window), 8);
+  gtk_window_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+  gtk_window_set_modal(GTK_WINDOW(window), TRUE);
+  gtk_window_set_policy(GTK_WINDOW(window), FALSE, TRUE, FALSE);
+  gtk_widget_realize(window);
+
+  vbox = gtk_vbox_new(FALSE, 6);
+  gtk_widget_show(vbox);
+  gtk_container_add(GTK_CONTAINER(window), vbox);
+
+  /* notebook */ 
+  GtkWidget *notebook = gtk_notebook_new();
+  /* main tab */
+  create_config_main_page(notebook, g_opt.rcfile);
+  /* about, copyright tab */
+  create_config_about_page(notebook, g_opt.rcfile);
+
+  gtk_widget_show(notebook);
+  gtk_box_pack_start(GTK_BOX(vbox), notebook, TRUE, TRUE, 0);
+
+  confirm_area = gtk_hbutton_box_new();
+  gtk_button_box_set_layout(GTK_BUTTON_BOX(confirm_area), GTK_BUTTONBOX_END);
+  gtk_box_set_spacing(GTK_BOX(confirm_area), 6);
+
+
+  ok_btn = gtk_button_new_from_stock(GTK_STOCK_OK);
+  GTK_WIDGET_SET_FLAGS(ok_btn, GTK_CAN_DEFAULT);
+  gtk_box_pack_start(GTK_BOX(confirm_area), ok_btn, FALSE, FALSE, 0);
+  gtk_widget_show(ok_btn);
+
+  cancel_btn = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
+  GTK_WIDGET_SET_FLAGS(cancel_btn, GTK_CAN_DEFAULT);
+  gtk_box_pack_start(GTK_BOX(confirm_area), cancel_btn, FALSE, FALSE, 0);
+  gtk_widget_show(cancel_btn);
+
+  gtk_widget_show(confirm_area);
+	
+  gtk_box_pack_end(GTK_BOX(vbox), confirm_area, FALSE, FALSE, 0);
+  gtk_widget_grab_default(ok_btn);
+
+  gtk_window_set_title(GTK_WINDOW(window), _("Chkarchpasswd Settings"));
+
+  g_signal_connect(G_OBJECT(ok_btn), "clicked",
+                   G_CALLBACK(prefs_ok_cb), window);
+  g_signal_connect(G_OBJECT(cancel_btn), "clicked",
+                   G_CALLBACK(prefs_cancel_cb), window);
+  gtk_widget_show(window);
+
 }
 
 static void exec_chkarchpasswd_onoff_cb(void)
@@ -472,5 +602,62 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
   }
   g_print("compose_send_cb:%s\n", bcancel ? "TRUE" : "FALSE");
   return bcancel;
+}
+
+static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey)
+{
+  debug_print("create_config_main_page\n");
+  if (notebook == NULL){
+    return NULL;
+  }
+  /* startup */
+  if (pkey!=NULL){
+  }
+  GtkWidget *vbox = gtk_vbox_new(FALSE, 6);
+  g_opt.chk_startup = gtk_check_button_new_with_label(_("Enable plugin on startup."));
+  gtk_widget_show(g_opt.chk_startup);
+  gtk_box_pack_start(GTK_BOX(vbox), g_opt.chk_startup, FALSE, FALSE, 0);
+
+  g_opt.chk_twice = gtk_check_button_new_with_label(_("Enable confirmation twice before sending mail."));
+  gtk_box_pack_start(GTK_BOX(vbox), g_opt.chk_twice, FALSE, FALSE, 0);
+
+  GtkWidget *general_lbl = gtk_label_new(_("General"));
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, general_lbl);
+  gtk_widget_show_all(notebook);
+  return NULL;
+}
+
+/* about, copyright tab */
+static GtkWidget *create_config_about_page(GtkWidget *notebook, GKeyFile *pkey)
+{
+  debug_print("create_config_about_page\n");
+  if (notebook == NULL){
+    return NULL;
+  }
+  GtkWidget *hbox = gtk_hbox_new(TRUE, 6);
+  GtkWidget *vbox = gtk_vbox_new(FALSE, 6);
+  gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, 6);
+
+  GtkWidget *misc = gtk_label_new("Chkarchpasswd");
+  gtk_box_pack_start(GTK_BOX(vbox), misc, FALSE, TRUE, 6);
+
+  misc = gtk_label_new(PLUGIN_DESC);
+  gtk_box_pack_start(GTK_BOX(vbox), misc, FALSE, TRUE, 6);
+
+  /* copyright */
+  GtkWidget *scrolled = gtk_scrolled_window_new(NULL, NULL);
+
+  GtkTextBuffer *tbuffer = gtk_text_buffer_new(NULL);
+  gtk_text_buffer_set_text(tbuffer, _(g_copyright), strlen(g_copyright));
+  GtkWidget *tview = gtk_text_view_new_with_buffer(tbuffer);
+  gtk_container_add(GTK_CONTAINER(scrolled), tview);
+    
+  gtk_box_pack_start(GTK_BOX(vbox), scrolled, TRUE, TRUE, 6);
+    
+  /**/
+  GtkWidget *general_lbl = gtk_label_new(_("About"));
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), hbox, general_lbl);
+  gtk_widget_show_all(notebook);
+  return NULL;
 }
 
