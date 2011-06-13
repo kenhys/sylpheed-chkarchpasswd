@@ -53,7 +53,7 @@
 
 static SylPluginInfo info = {
     N_(PLUGIN_NAME),
-    "0.5.0",
+    "0.5.1",
     "HAYASHI Kentaro",
     N_(PLUGIN_DESC)
 };
@@ -174,7 +174,12 @@ SylPluginInfo *plugin_info(void)
 
 gint plugin_interface_version(void)
 {
-  return SYL_PLUGIN_INTERFACE_VERSION;
+#if DEBUG
+    /* emulate sylpheed 3.x not svn HEAD */
+    return 0x0107;
+#else
+    return SYL_PLUGIN_INTERFACE_VERSION;
+#endif
 }
 
 static gboolean g_enable = FALSE;
@@ -227,13 +232,13 @@ static Compose* g_compose = NULL;
 void compose_created_cb(GObject *obj, gpointer compose)
 {
   g_compose = (Compose*)compose;
-  GtkWidget *toolbar = g_compose->toolbar;
-  GtkToolItem *toolitem = NULL;
 
 
 #if 0
   /* add check archive button for testing. */
   /* GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_LARGE_TOOLBAR);*/
+  GtkWidget *toolbar = g_compose->toolbar;
+  GtkToolItem *toolitem = NULL;
   GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_LARGE_TOOLBAR);  
   GtkToolItem *toolitem = gtk_tool_button_new(icon, "check attachement");
   GtkTooltips *tooltips = gtk_tooltips_new();
@@ -276,42 +281,43 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
   gint nblank;
   gint npasswd;
   
-  gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, PLUGIN_DIR,G_DIR_SEPARATOR_S, "chkarchpasswd", NULL);
+  /* create working directory for unzip */
+  gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
+                            PLUGIN_DIR,G_DIR_SEPARATOR_S, "chkarchpasswd", NULL);
   g_mkdir_with_parents(path, 0);
   
   gint npasstotal = 0;
   gint npassok = 0;
-  gint val = 0;
   gboolean bpasswd = FALSE;
 
   debug_print("text:%p\n", g_compose->text);
   GtkTextView *text = GTK_TEXT_VIEW(g_compose->text);
   if (text==NULL){
-      debug_print("text is NULL\n");
-      return TRUE;
+    debug_print("text is NULL\n");
+    return TRUE;
   }else{
-      debug_print("text:%p\n", text);
+    debug_print("text:%p\n", text);
   }
   GtkTextBuffer *buffer;
   buffer = gtk_text_view_get_buffer(text);
   GtkTextIter tsiter, teiter;
   if (buffer == NULL){
-      debug_print("buffer is NULL\n");
-      return TRUE;
+    debug_print("buffer is NULL\n");
+    return TRUE;
   }else{
-      debug_print("buffer:%p\n", buffer);
+    debug_print("buffer:%p\n", buffer);
   }
   gtk_text_buffer_get_bounds(buffer, &tsiter, &teiter);
   gchar *pwtext = gtk_text_buffer_get_text(buffer, &tsiter, &teiter, TRUE);
-  if (pwtext==NULL){
-      debug_print("pwtext is NULL\n");
-      return TRUE;
-  }else{
-      debug_print("pwtext:%p\n", pwtext);
-  }
   GScanner *gscan = g_scanner_new(NULL);
   gscan->config->scan_identifier_1char=TRUE;
-  g_scanner_input_text(gscan, pwtext, strlen(pwtext));
+
+  if (pwtext==NULL){
+    debug_print("pwtext is NULL\n");
+  }else{
+    g_scanner_input_text(gscan, pwtext, strlen(pwtext));
+    debug_print("pwtext:%p\n", pwtext);
+  }
 
   debug_print("scan loop\n");
   GTokenValue gvalue;
@@ -438,32 +444,33 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
       }else{
       }
   }
-  gboolean bsend = FALSE;
+  gboolean bcancel = TRUE;
   if ( npasstotal > 0 && npassok == npasstotal){
 #if 0
     syl_plugin_alertpanel("", _("password is not empty. sending mail..."),
                                     GTK_STOCK_OK,NULL, NULL);
 #endif
-    bsend = TRUE;
+    bcancel = FALSE;
   }else if (npasstotal > 0 && npassok < npasstotal){
     gint val = syl_plugin_alertpanel("", _("attachment password is empty. Do you want to send?"),
                                      GTK_STOCK_YES, GTK_STOCK_NO, NULL);
     if (val != 0){
-      return FALSE;
+      /* cancel */
+      return TRUE;
     }
     val = syl_plugin_alertpanel("", _("attachment password is empty. Do you really want to send?"),
                                 GTK_STOCK_NO, GTK_STOCK_YES, NULL);
     if (val == 0){
-      return FALSE;
+      return TRUE;
     }
-    bsend = TRUE;
+    bcancel = FALSE;
   }else if (npasstotal == 0){
-      bsend = TRUE;
+      bcancel = FALSE;
   }else{
       syl_plugin_alertpanel("", "abort to sending email.",
                             GTK_STOCK_OK, NULL, NULL);
   }
-  g_print("compose_send_cb:%s\n", bsend ? "TRUE" : "FALSE");
-  return bsend;
+  g_print("compose_send_cb:%s\n", bcancel ? "TRUE" : "FALSE");
+  return bcancel;
 }
 
