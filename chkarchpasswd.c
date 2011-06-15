@@ -614,12 +614,16 @@ static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey)
   if (pkey!=NULL){
   }
   GtkWidget *vbox = gtk_vbox_new(FALSE, 6);
+
   g_opt.chk_startup = gtk_check_button_new_with_label(_("Enable plugin on startup."));
   gtk_widget_show(g_opt.chk_startup);
   gtk_box_pack_start(GTK_BOX(vbox), g_opt.chk_startup, FALSE, FALSE, 0);
 
   g_opt.chk_twice = gtk_check_button_new_with_label(_("Enable confirmation twice before sending mail."));
   gtk_box_pack_start(GTK_BOX(vbox), g_opt.chk_twice, FALSE, FALSE, 0);
+
+  g_opt.chk_passwd = gtk_check_button_new_with_label(_("Enable password validation for attachment."));
+  gtk_box_pack_start(GTK_BOX(vbox), g_opt.chk_passwd, FALSE, FALSE, 0);
 
   GtkWidget *general_lbl = gtk_label_new(_("General"));
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, general_lbl);
