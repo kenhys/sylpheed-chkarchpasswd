@@ -45,6 +45,7 @@
 #include <locale.h>
 
 #define CHKARCHPASSWD "chkarchpasswd"
+#define CHKARCHPASSWDRC "chkarchpasswdrc"
 #define _(String)   dgettext(CHKARCHPASSWD, String)
 #define N_(String)  gettext_noop(String)
 #define gettext_noop(String) (String)
@@ -54,10 +55,11 @@
 
 static SylPluginInfo info = {
     N_(PLUGIN_NAME),
-    "0.5.1",
+    "0.6.0",
     "HAYASHI Kentaro",
     N_(PLUGIN_DESC)
 };
+
 
 static void exec_chkarchpasswd_cb(GObject *obj, FolderItem *item, const gchar *file, guint num);
 static void exec_chkarchpasswd_menu_cb(void);
@@ -76,6 +78,9 @@ typedef BOOL WINAPI (*WINAPI_SEVENZIPSETUNICODEMODE)(BOOL _bUnicode);
 static HANDLE g_hdll = NULL;
 static WINAPI_SEVENZIP hZip = NULL;
 static WINAPI_SEVENZIPSETUNICODEMODE hUniZip = NULL;
+
+static gboolean g_enable = FALSE;
+static GKeyFile *g_keyfile=NULL;
 
 static GtkWidget *g_plugin_on = NULL;
 static GtkWidget *g_plugin_off = NULL;
@@ -194,20 +199,45 @@ void plugin_load(void)
 
     gtk_widget_show_all(g_onoff_switch);
 
-    if (g_hdll){
+    gtk_widget_hide(g_plugin_on);
+    gtk_widget_show(g_plugin_off);
+    gtk_tooltips_set_tip
+      (g_tooltip, g_onoff_switch,
+       _("Chkpasswd is disabled."),
+       NULL);
+
+    gchar *rcpath = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, CHKARCHPASSWDRC, NULL);
+    g_keyfile = g_key_file_new();
+    if (g_key_file_load_from_file(g_keyfile, rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL)){
+      gboolean startup=g_key_file_get_boolean (g_keyfile, CHKARCHPASSWD, "startup", NULL);
+      debug_print("startup:%s", startup ? "true" : "false");
+
+      if (startup){
+        g_enable=TRUE;
         gtk_widget_hide(g_plugin_off);
         gtk_widget_show(g_plugin_on);
-        gtk_tooltips_set_tip
-			(g_tooltip, g_onoff_switch,
-			 _("Chkpasswd is enabled."),
-			 NULL);
-    }else {
-        gtk_widget_hide(g_plugin_on);
-        gtk_widget_show(g_plugin_off);
-        gtk_tooltips_set_tip
-			(g_tooltip, g_onoff_switch,
-			 _("Chkpasswd is disabled."),
-			 NULL);
+        gtk_tooltips_set_tip(g_tooltip, g_onoff_switch,
+                             _("Chkarchpasswd is enabled. Click the icon to disable plugin."),
+                             NULL);
+
+        if (g_hdll){
+          gtk_widget_hide(g_plugin_off);
+          gtk_widget_show(g_plugin_on);
+          gtk_tooltips_set_tip
+            (g_tooltip, g_onoff_switch,
+             _("Chkpasswd is enabled."),
+             NULL);
+        }else {
+          gtk_widget_hide(g_plugin_on);
+          gtk_widget_show(g_plugin_off);
+          gtk_tooltips_set_tip
+            (g_tooltip, g_onoff_switch,
+             _("Chkpasswd is disabled."),
+             NULL);
+        }
+      }
+        
+      g_free(rcpath);
     }
 
     debug_print("[PLUGIN] chkarchpasswd_tool plug-in loading done.\n");
@@ -228,7 +258,7 @@ SylPluginInfo *plugin_info(void)
 
 gint plugin_interface_version(void)
 {
-#if DEBUG
+#if RELEASE_3_1
     /* emulate sylpheed 3.x not svn HEAD */
     return 0x0107;
 #else
@@ -236,9 +266,8 @@ gint plugin_interface_version(void)
 #endif
 }
 
-static gboolean g_enable = FALSE;
 
- static void prefs_ok_cb(GtkWidget *widget, gpointer data)
+static void prefs_ok_cb(GtkWidget *widget, gpointer data)
 {
 
   g_key_file_load_from_file(g_opt.rcfile, g_opt.rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL);
@@ -619,7 +648,7 @@ static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey)
   gtk_widget_show(g_opt.chk_startup);
   gtk_box_pack_start(GTK_BOX(vbox), g_opt.chk_startup, FALSE, FALSE, 0);
 
-  g_opt.chk_twice = gtk_check_button_new_with_label(_("Enable confirmation twice before sending mail."));
+  g_opt.chk_twice = gtk_check_button_new_with_label(_("Enable confirmation twice before sending mail without password for attachement."));
   gtk_box_pack_start(GTK_BOX(vbox), g_opt.chk_twice, FALSE, FALSE, 0);
 
   g_opt.chk_passwd = gtk_check_button_new_with_label(_("Enable password validation for attachment."));
@@ -628,6 +657,25 @@ static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey)
   GtkWidget *general_lbl = gtk_label_new(_("General"));
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, general_lbl);
   gtk_widget_show_all(notebook);
+
+  gboolean status=g_key_file_get_boolean(pkey, CHKARCHPASSWD, "startup", NULL);
+  debug_print("startup:%s\n", status ? "TRUE" : "FALSE");
+  if (status!=FALSE){
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_opt.chk_startup), TRUE);
+  }
+
+  status=g_key_file_get_boolean(pkey, CHKARCHPASSWD, "twice", NULL);
+  debug_print("startup:%s\n", status ? "TRUE" : "FALSE");
+  if (status!=FALSE){
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_opt.chk_twice), TRUE);
+  }
+
+  status=g_key_file_get_boolean(pkey, CHKARCHPASSWD, "passwd", NULL);
+  debug_print("startup:%s\n", status ? "TRUE" : "FALSE");
+  if (status!=FALSE){
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_opt.chk_passwd), TRUE);
+  }
+
   return NULL;
 }
 

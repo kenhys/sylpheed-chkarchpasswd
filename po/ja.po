@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: chkarchpasswd\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-01 13:41+0900\n"
+"POT-Creation-Date: 2011-07-01 14:01+0900\n"
 "PO-Revision-Date: 2011-03-07 10:19+0900\n"
 "Last-Translator: <kenhys@gmail.com>\n"
 "Language-Team: Japanese\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: chkarchpasswd.c:52
+#: chkarchpasswd.c:53
 msgid "Check attachment password Plug-in"
 msgstr "送信時パスワードチェックプラグイン"
 
-#: chkarchpasswd.c:53
+#: chkarchpasswd.c:54
 msgid "Check password of your mail attachment(*.zip), when you send mail."
 msgstr "送信時に添付ファイル(zip)のパスワードをチェックします。"
 
-#: chkarchpasswd.c:123
+#: chkarchpasswd.c:128
 msgid ""
 "Chkarchpasswd is distributed under GPL license.\n"
 "\n"
@@ -38,83 +38,89 @@ msgid ""
 "\n"
 msgstr ""
 
-#: chkarchpasswd.c:160
+#: chkarchpasswd.c:165
 msgid "Chkarchpasswd Settings [chkarchpasswd]"
 msgstr "パスワードチェック設定 [chkarchpasswd]"
 
-#: chkarchpasswd.c:202
-msgid "Chkpasswd is enabled."
-msgstr "送信時パスワードチェックプラグインを有効化しました。"
-
-#: chkarchpasswd.c:209
+#: chkarchpasswd.c:206 chkarchpasswd.c:235
 msgid "Chkpasswd is disabled."
 msgstr "送信時パスワードチェックプラグインを無効化しました。"
 
-#: chkarchpasswd.c:324
+#: chkarchpasswd.c:220 chkarchpasswd.c:374
+msgid "Chkarchpasswd is enabled. Click the icon to disable plugin."
+msgstr ""
+"送信時パスワードチェックプラグインを有効化しました。無効にするにはアイコンを"
+"クリックしてください"
+
+#: chkarchpasswd.c:228
+msgid "Chkpasswd is enabled."
+msgstr "送信時パスワードチェックプラグインを有効化しました。"
+
+#: chkarchpasswd.c:353
 #, fuzzy
 msgid "Chkarchpasswd Settings"
 msgstr "送信時パスワードチェックプラグイン 設定"
 
-#: chkarchpasswd.c:339 chkarchpasswd.c:349
+#: chkarchpasswd.c:368 chkarchpasswd.c:378
 #, fuzzy
 msgid "Chkarchpasswd"
 msgstr "送信時パスワードチェックプラグイン 設定"
 
-#: chkarchpasswd.c:339
+#: chkarchpasswd.c:368
 msgid "chkarchpasswd plugin is enabled."
 msgstr "送信時パスワードチェックプラグインを有効化しました。"
 
-#: chkarchpasswd.c:345
-msgid "Chkarchpasswd is enabled. Click the icon to disable plugin."
-msgstr ""
-
-#: chkarchpasswd.c:349
+#: chkarchpasswd.c:378
 msgid "chkarchpasswd plugin is disabled."
 msgstr "送信時パスワードチェックプラグインを無効化しました。"
 
-#: chkarchpasswd.c:355
+#: chkarchpasswd.c:384
 msgid "Chkarchpasswd is disabled. Click the icon to enable plugin."
 msgstr ""
+"送信時パスワードチェックプラグインを無効化しました。有効にするにはアイコンを"
+"クリックしてください"
 
-#: chkarchpasswd.c:513
+#: chkarchpasswd.c:542
 #, c-format
 msgid "enter password for attachment(%s)."
-msgstr ""
+msgstr "添付ファイル(%s)のパスワードを入力してください"
 
-#: chkarchpasswd.c:566
+#: chkarchpasswd.c:595
 #, c-format
 msgid "attachment(%s) password (%s) is described in mail body."
-msgstr ""
+msgstr "添付ファイル(%s)のパスワード(%s)が本文に記載されています"
 
-#: chkarchpasswd.c:580
+#: chkarchpasswd.c:609
 msgid "password is not empty. sending mail..."
 msgstr "パスワードが設定されています。メールを送信します..."
 
-#: chkarchpasswd.c:585
+#: chkarchpasswd.c:614
 msgid "attachment password is empty. Do you want to send?"
 msgstr "添付ファイルにパスワードが設定されていません。送信しますか?"
 
-#: chkarchpasswd.c:591
+#: chkarchpasswd.c:620
 msgid "attachment password is empty. Do you really want to send?"
 msgstr "添付ファイルにパスワードが設定されていません。送信しますか?"
 
-#: chkarchpasswd.c:618
+#: chkarchpasswd.c:647
 msgid "Enable plugin on startup."
 msgstr "起動時にプラグインを有効化"
 
-#: chkarchpasswd.c:622
+#: chkarchpasswd.c:651
 #, fuzzy
-msgid "Enable confirmation twice before sending mail."
+msgid ""
+"Enable confirmation twice before sending mail without password for "
+"attachement."
 msgstr "送信時再確認を行う"
 
-#: chkarchpasswd.c:625
+#: chkarchpasswd.c:654
 msgid "Enable password validation for attachment."
-msgstr ""
+msgstr "添付ファイルのパスワードを検証する"
 
-#: chkarchpasswd.c:628
+#: chkarchpasswd.c:657
 msgid "General"
 msgstr "設定"
 
-#: chkarchpasswd.c:662
+#: chkarchpasswd.c:691
 msgid "About"
 msgstr "情報"
