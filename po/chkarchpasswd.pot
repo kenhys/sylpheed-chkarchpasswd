@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-01 14:01+0900\n"
+"POT-Creation-Date: 2011-07-04 14:40+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,7 +24,7 @@ msgstr ""
 msgid "Check password of your mail attachment(*.zip), when you send mail."
 msgstr ""
 
-#: chkarchpasswd.c:128
+#: chkarchpasswd.c:127
 msgid ""
 "Chkarchpasswd is distributed under GPL license.\n"
 "\n"
@@ -37,11 +37,11 @@ msgid ""
 "\n"
 msgstr ""
 
-#: chkarchpasswd.c:165
+#: chkarchpasswd.c:164
 msgid "Chkarchpasswd Settings [chkarchpasswd]"
 msgstr ""
 
-#: chkarchpasswd.c:206 chkarchpasswd.c:235
+#: chkarchpasswd.c:205 chkarchpasswd.c:235
 msgid "Chkpasswd is disabled."
 msgstr ""
 
@@ -113,6 +113,6 @@ msgstr ""
 msgid "General"
 msgstr ""
 
-#: chkarchpasswd.c:691
+#: chkarchpasswd.c:710
 msgid "About"
 msgstr ""
