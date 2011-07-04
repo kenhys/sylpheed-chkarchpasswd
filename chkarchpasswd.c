@@ -80,7 +80,6 @@ static WINAPI_SEVENZIP hZip = NULL;
 static WINAPI_SEVENZIPSETUNICODEMODE hUniZip = NULL;
 
 static gboolean g_enable = FALSE;
-static GKeyFile *g_keyfile=NULL;
 
 static GtkWidget *g_plugin_on = NULL;
 static GtkWidget *g_plugin_off = NULL;
@@ -207,9 +206,10 @@ void plugin_load(void)
        NULL);
 
     gchar *rcpath = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, CHKARCHPASSWDRC, NULL);
-    g_keyfile = g_key_file_new();
-    if (g_key_file_load_from_file(g_keyfile, rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL)){
-      gboolean startup=g_key_file_get_boolean (g_keyfile, CHKARCHPASSWD, "startup", NULL);
+    g_opt.rcfile = g_key_file_new();
+    g_opt.rcpath = g_strdup(rcpath);
+    if (g_key_file_load_from_file(g_opt.rcfile, rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL)){
+      gboolean startup=g_key_file_get_boolean (g_opt.rcfile, CHKARCHPASSWD, "startup", NULL);
       debug_print("startup:%s", startup ? "true" : "false");
 
       if (startup){
@@ -288,7 +288,7 @@ static void prefs_ok_cb(GtkWidget *widget, gpointer data)
   gsize sz;
   gchar *buf=g_key_file_to_data(g_opt.rcfile, &sz, NULL);
   g_file_set_contents(g_opt.rcpath, buf, sz, NULL);
-    
+
   gtk_widget_destroy(GTK_WIDGET(data));
 }
 
