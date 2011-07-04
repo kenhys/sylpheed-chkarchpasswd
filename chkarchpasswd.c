@@ -22,7 +22,6 @@
 
 #include <glib.h>
 #include <gtk/gtk.h>
-
 #include <stdio.h>
 #include <sys/stat.h>
 
@@ -101,7 +100,9 @@ struct _ChkArchPasswdOption {
   /* check encrypted attachment password */
   GtkWidget *chk_passwd;
 
-  gboolean enable_aquest;
+  gboolean flg_startup;
+  gboolean flg_twice;
+  gboolean flg_passwd;
 
   GtkWidget *aq_dic_entry;
   GtkWidget *aq_dic_btn;
@@ -205,6 +206,10 @@ void plugin_load(void)
        _("Chkpasswd is disabled."),
        NULL);
 
+    g_opt.flg_startup = FALSE;
+    g_opt.flg_twice = TRUE;
+    g_opt.flg_passwd = FALSE;
+    
     gchar *rcpath = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, CHKARCHPASSWDRC, NULL);
     g_opt.rcfile = g_key_file_new();
     g_opt.rcpath = g_strdup(rcpath);
@@ -249,6 +254,12 @@ void plugin_unload(void)
   if (g_hdll!=NULL){
       FreeLibrary(g_hdll);
   }
+  /* TODO: remove tempolary files g_file_enumerate_children or something */
+  gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
+                            PLUGIN_DIR,G_DIR_SEPARATOR_S, CHKARCHPASSWD, NULL);
+  g_rmdir(path);
+  /*GFile *file = g_file_new_for_path(path);
+    g_file_delete(file, NULL, NULL); you cant use gio */
 }
 
 SylPluginInfo *plugin_info(void)
@@ -529,31 +540,31 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
       gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
       /* see 3 as COL_ATTACH_INFO in compose.c */
-      if (memcmp("application/zip", ainfo->content_type, sizeof("application/zip")) == 0 ||
-          memcmp("application/octet-stream", ainfo->content_type, sizeof("application/octet-stream")) == 0) {
-          npasstotal += 1;
-          debug_print("file:%s\n", ainfo->file);
-          debug_print("content_type:%s\n", ainfo->content_type);
-          debug_print("name:%s\n", ainfo->name);
-          debug_print("size:%d\n", ainfo->size);
+      if (memcmp("application/zip", ainfo->content_type, sizeof("application/zip")) == 0 /*||
+                                                                                           memcmp("application/octet-stream", ainfo->content_type, sizeof("application/octet-stream")) == 0*/) {
+        npasstotal += 1;
+        debug_print("file:%s\n", ainfo->file);
+        debug_print("content_type:%s\n", ainfo->content_type);
+        debug_print("name:%s\n", ainfo->name);
+        debug_print("size:%d\n", ainfo->size);
 
 
-#if 0
-          gchar *msg=g_strdup_printf(_("enter password for attachment(%s).", ainfo->name);
-          gchar *passwd= syl_plugin_input_dialog("password", msg, "guest");
-          
-          if (passwd==NULL){
+        gchar *msg=NULL;
+        gchar *passwd=NULL;
+        if (g_opt.flg_passwd != FALSE){
+          msg = g_strdup_printf(_("enter password for attachment(%s)."), ainfo->name);
+          passwd = syl_plugin_input_dialog("password", msg, "guest");
+        }
+        if (passwd==NULL){
             msg=g_strdup_printf("skip password check for attachement(%s)", ainfo->name);
               syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
               continue;
           }
-#endif
           bpasswd=FALSE;
           char buf[1024];
           DWORD dwSize = 0;
           /* input password for archive */
-          gchar *com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -o\"%s\" -r",
-                                       ainfo->file, path);
+          gchar *com = NULL;
           nblank = hZip(NULL, com, buf, dwSize);
           g_print("%s blank password result:%08x\n", ainfo->name,nblank);
 
