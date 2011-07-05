@@ -52,6 +52,8 @@
 #define PLUGIN_NAME N_("Check attachment password Plug-in")
 #define PLUGIN_DESC N_("Check password of your mail attachment(*.zip), when you send mail.")
 
+#define GET_RC_BOOLEAN(keyarg) g_key_file_get_boolean(g_opt.rcfile, CHKARCHPASSWD, keyarg, NULL)
+
 static SylPluginInfo info = {
     N_(PLUGIN_NAME),
     "0.6.0",
@@ -214,10 +216,9 @@ void plugin_load(void)
     g_opt.rcfile = g_key_file_new();
     g_opt.rcpath = g_strdup(rcpath);
     if (g_key_file_load_from_file(g_opt.rcfile, rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL)){
-      gboolean startup=g_key_file_get_boolean (g_opt.rcfile, CHKARCHPASSWD, "startup", NULL);
-      debug_print("startup:%s", startup ? "true" : "false");
+      g_opt.flg_startup=GET_RC_BOOLEAN("startup");
 
-      if (startup){
+      if (g_opt.flg_startup != FALSE){
         g_enable=TRUE;
         gtk_widget_hide(g_plugin_off);
         gtk_widget_show(g_plugin_on);
@@ -242,10 +243,22 @@ void plugin_load(void)
         }
       }
         
+      g_opt.flg_twice= GET_RC_BOOLEAN( "twice");
+
+      g_opt.flg_passwd=GET_RC_BOOLEAN( "passwd");
+      
       g_free(rcpath);
     }
 
+    debug_print("[PLUGIN] chkarchpasswdrc startup:%d\n", g_opt.flg_startup);
+    debug_print("[PLUGIN] chkarchpasswdrc twice:%d\n", g_opt.flg_twice);
+    debug_print("[PLUGIN] chkarchpasswdrc passwd:%d\n", g_opt.flg_passwd);
     debug_print("[PLUGIN] chkarchpasswd_tool plug-in loading done.\n");
+
+    gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
+                              PLUGIN_DIR,G_DIR_SEPARATOR_S, CHKARCHPASSWD, NULL);
+    my_rmdir(path);
+    g_rmdir(path);
 }
 
 void plugin_unload(void)
@@ -257,10 +270,31 @@ void plugin_unload(void)
   /* TODO: remove tempolary files g_file_enumerate_children or something */
   gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
                             PLUGIN_DIR,G_DIR_SEPARATOR_S, CHKARCHPASSWD, NULL);
+  my_rmdir(path);
   g_rmdir(path);
+  debug_print("[PLUGIN] remove %s\n", path);
   /*GFile *file = g_file_new_for_path(path);
     g_file_delete(file, NULL, NULL); you cant use gio */
 }
+
+void my_rmdir(gchar *dpath)
+{
+  GDir *g_dir = g_dir_open(dpath, 0, NULL);
+  gchar *path = NULL;
+  while ((path = g_dir_read_name(g_dir))!=NULL){
+    debug_print("[PLUGIN] path %s\n", path);
+    gchar* fpath = g_strconcat(dpath, G_DIR_SEPARATOR_S, path, NULL);
+    if (!g_file_test(path, G_FILE_TEST_IS_DIR)){
+      debug_print("[PLUGIN] remove %s\n", fpath);
+      g_unlink(fpath);
+    }else {
+      debug_print("[PLUGIN] remove dir %s\n", path);
+      my_rmdir(fpath);
+    }
+  }
+  g_dir_close(g_dir);
+}
+
 
 SylPluginInfo *plugin_info(void)
 {
@@ -432,6 +466,9 @@ void compose_destroy_cb(GObject *obj, gpointer compose)
   /**/
 }
 
+#define MIME_ZIP "application/zip"
+#define MIME_7Z "application/octet-stream"
+
 static gboolean compose_send_cb(GObject *obj, gpointer compose,
                                 gint compose_mode, gint send_mode,
                                 const gchar *msg_file, GSList *to_list)
@@ -540,9 +577,12 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
 	     valid = gtk_tree_model_iter_next(model, &iter)) {
       gtk_tree_model_get(model, &iter, 3, &ainfo, -1);
       /* see 3 as COL_ATTACH_INFO in compose.c */
-      if (memcmp("application/zip", ainfo->content_type, sizeof("application/zip")) == 0 /*||
-                                                                                           memcmp("application/octet-stream", ainfo->content_type, sizeof("application/octet-stream")) == 0*/) {
+      if (memcmp(MIME_ZIP, ainfo->content_type, sizeof(MIME_ZIP)) == 0 ||
+          (memcmp(MIME_7Z, ainfo->content_type, sizeof(MIME_7Z)) == 0 &&
+           g_strrstr(ainfo->file, ".7z")!=NULL)) {
+        /* check zip and 7z archive. */
         npasstotal += 1;
+
         debug_print("file:%s\n", ainfo->file);
         debug_print("content_type:%s\n", ainfo->content_type);
         debug_print("name:%s\n", ainfo->name);
@@ -551,65 +591,75 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
 
         gchar *msg=NULL;
         gchar *passwd=NULL;
-        if (g_opt.flg_passwd != FALSE){
-          msg = g_strdup_printf(_("enter password for attachment(%s)."), ainfo->name);
-          passwd = syl_plugin_input_dialog("password", msg, "guest");
+        bpasswd=FALSE;
+        char buf[1024];
+        DWORD dwSize = 0;
+        /* input password for archive */
+        gchar *com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -o\"%s\" -r",
+                              ainfo->file, path);
+        nblank = hZip(NULL, com, buf, dwSize);
+        g_print("%s blank password result:%08x\n", ainfo->name,nblank);
+
+        com = g_strdup_printf("x \"%s\" -aoa -p\"test\" -hide -o\"%s\" -r",
+                              ainfo->file, path);
+        npasswd = hZip(NULL, com, buf, dwSize);
+        g_print("%s invalid password result:%08x\n",ainfo->name, npasswd);
+
+        if (nblank == 0x0000800a && npasswd == 0x00000000){
+          /* passwd ok */
+          g_print("%s valid password result\n", ainfo->name);
+          bpasswd = TRUE;
+        } else if (nblank == 0x0000800a && npasswd == 0x0000800a){
+          /* passwd but not match */
+          g_print("%s invalid password result\n", ainfo->name);
+          bpasswd = TRUE;
+          /* does not care invalid password */
+        } else if (nblank == 0x00000000 && npasswd == 0x00000000){
+          /* no password */
+          g_print("%s no password result\n", ainfo->name);
         }
-        if (passwd==NULL){
-            msg=g_strdup_printf("skip password check for attachement(%s)", ainfo->name);
-              syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
-              continue;
-          }
-          bpasswd=FALSE;
-          char buf[1024];
-          DWORD dwSize = 0;
-          /* input password for archive */
-          gchar *com = NULL;
-          nblank = hZip(NULL, com, buf, dwSize);
-          g_print("%s blank password result:%08x\n", ainfo->name,nblank);
-
+        if (bpasswd==TRUE){
+          if (g_opt.flg_passwd != FALSE){
+            msg = g_strdup_printf(_("enter password for attachment(%s)."), ainfo->name);
+            passwd = syl_plugin_input_dialog("password", msg, "input password here");
+            if (passwd==NULL){
 #if 0
-          com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
-                                ainfo->file, passwd, path);
+              msg=g_strdup_printf("skip password check for attachement(%s)", ainfo->name);
+              syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
 #endif
-          com = g_strdup_printf("x \"%s\" -aoa -p\"test\" -hide -o\"%s\" -r",
-                                ainfo->file, path);
-          npasswd = hZip(NULL, com, buf, dwSize);
-          g_print("%s invalid password result:%08x\n",ainfo->name, npasswd);
-
-          if (nblank == 0x0000800a && npasswd == 0x00000000){
-              /* passwd ok */
-              g_print("%s valid password result\n", ainfo->name);
-              bpasswd = TRUE;
-          } else if (nblank == 0x0000800a && npasswd == 0x0000800a){
-              /* passwd but not match */
-              g_print("%s invalid password result\n", ainfo->name);
-              bpasswd = TRUE;
-              /* does not care invalid password */
-          } else if (nblank == 0x00000000 && npasswd == 0x00000000){
-              /* no password */
-              g_print("%s no password result\n", ainfo->name);
-          }
-          if (bpasswd==TRUE){
-              /* check pwlist */
-              guint pwidx = 0;
-              gboolean bmatch = FALSE;
-              for (pwidx = 0; pwidx < g_list_length(pwlist); pwidx++){
-                gchar *passwd = g_list_nth_data(pwlist, pwidx);
-                com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
-                                      ainfo->file, passwd, path);
-                g_print("check password %s for %s\n",passwd, ainfo->name);
-                nblank = hZip(NULL, com, buf, dwSize);
-                if (nblank == 0x00000000){
-                  g_print("%s blank password result:%08x\n", ainfo->name,nblank);
-                  bmatch = TRUE;
-                  msg=g_strdup_printf(_("attachment(%s) password (%s) is described in mail body."),
-                                      ainfo->name, passwd);
-                  syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
-                  return FALSE;
-                }
+            }else {
+              com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
+                                    ainfo->file, passwd, path);
+              npasswd = hZip(NULL, com, buf, dwSize);
+              if (npasswd == 0x00000000){
+              } else if (npasswd == 0x0000800a){
+                /* bad password */
+                msg=g_strdup_printf(_("password (%s) for attachment(%s) is not valid."),
+                                    passwd, ainfo->name);
+                syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
+                return TRUE;
               }
-              npassok += 1;
+            }
+          }
+          /* check pwlist */
+          guint pwidx = 0;
+          gboolean bmatch = FALSE;
+          for (pwidx = 0; pwidx < g_list_length(pwlist); pwidx++){
+            gchar *passwd = g_list_nth_data(pwlist, pwidx);
+              com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
+                                    ainfo->file, passwd, path);
+              g_print("check password %s for %s\n",passwd, ainfo->name);
+              nblank = hZip(NULL, com, buf, dwSize);
+              if (nblank == 0x00000000){
+                g_print("%s blank password result:%08x\n", ainfo->name,nblank);
+                bmatch = TRUE;
+                msg=g_strdup_printf(_("attachment(%s) password (%s) is described in mail body."),
+                                    ainfo->name, passwd);
+                syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
+                return TRUE;
+              }
+            }
+            npassok += 1;
           }
       }else{
       }
@@ -628,10 +678,12 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
       /* cancel */
       return TRUE;
     }
-    val = syl_plugin_alertpanel("", _("attachment password is empty. Do you really want to send?"),
-                                GTK_STOCK_NO, GTK_STOCK_YES, NULL);
-    if (val == 0){
-      return TRUE;
+    if ( g_opt.flg_twice != FALSE){
+      val = syl_plugin_alertpanel("", _("attachment password is empty. Do you really want to send?"),
+                                  GTK_STOCK_NO, GTK_STOCK_YES, NULL);
+      if (val == 0){
+        return TRUE;
+      }
     }
     bcancel = FALSE;
   }else if (npasstotal == 0){
