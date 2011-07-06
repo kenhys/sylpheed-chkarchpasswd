@@ -131,8 +131,8 @@ static gchar* g_copyright = N_("Chkarchpasswd is distributed under GPL license.\
 "\n"
 "Copyright (C) 2011 HAYASHI Kentaro <kenhys@gmail.com>"
 "\n"
-"chkarchpasswd contains following resource.\n"
-"\n"
+"chkarchpasswd contains following resource as statusbar icon.\n"
+"\n\n"
 "Silk icon set 1.3: Copyright (C) Mark James\n"
 "Licensed under a Creative Commons Attribution 2.5 License.\n"
 "http://www.famfamfam.com/lab/icons/silk/\n"
@@ -359,6 +359,7 @@ static void exec_chkarchpasswd_menu_cb(void)
   gtk_window_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
   gtk_window_set_modal(GTK_WINDOW(window), TRUE);
   gtk_window_set_policy(GTK_WINDOW(window), FALSE, TRUE, FALSE);
+  gtk_window_set_default_size(GTK_WINDOW(window), 300, 300);
   gtk_widget_realize(window);
 
   vbox = gtk_vbox_new(FALSE, 6);
@@ -765,6 +766,7 @@ static GtkWidget *create_config_about_page(GtkWidget *notebook, GKeyFile *pkey)
   GtkTextBuffer *tbuffer = gtk_text_buffer_new(NULL);
   gtk_text_buffer_set_text(tbuffer, _(g_copyright), strlen(g_copyright));
   GtkWidget *tview = gtk_text_view_new_with_buffer(tbuffer);
+  gtk_text_view_set_editable(GTK_TEXT_VIEW(tview), FALSE);
   gtk_container_add(GTK_CONTAINER(scrolled), tview);
     
   gtk_box_pack_start(GTK_BOX(vbox), scrolled, TRUE, TRUE, 6);
