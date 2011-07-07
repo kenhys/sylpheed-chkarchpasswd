@@ -6,7 +6,7 @@ LIBSYLPH=./lib/libsylph-0-1.a
 LIBSYLPHEED=./lib/libsylpheed-plugin-0-1.a
 INC=" -I. -I./include -I../../ -I../../libsylph -I../../src "
 INC="$INC `pkg-config --cflags glib-2.0 cairo gdk-2.0 atk `"
-DEF=" $DEF -DDEBUG -DHAVE_CONFIG_H -DUNICODE -D_UNICODE"
+DEF=" $DEF -DHAVE_CONFIG_H -DUNICODE -D_UNICODE"
 
 LIBS=" `pkg-config --libs glib-2.0 gobject-2.0 gtk+-2.0`"
 
@@ -48,7 +48,7 @@ else
     while [  $# -ne 0 ]; do
         case "$1" in
             -debug|--debug)
-                DEF=" -DDEBUG -DHAVE_CONFIG_H"
+                DEF=" $DEF -DDEBUG"
                 shift
                 ;;
             pot)
@@ -157,6 +157,7 @@ else
                 
                 ;;
             *)
+                shift
                 compile
                 ;;
         esac
