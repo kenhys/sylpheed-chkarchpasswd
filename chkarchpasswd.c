@@ -73,7 +73,10 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
 static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey);
 static GtkWidget *create_config_about_page(GtkWidget *notebook, GKeyFile *pkey);
 
-void my_rmdir_list(gchar *dpath);
+void check_attachement_cb(GObject *obj, gpointer data);
+
+void my_rmdir(gchar *path);
+void my_rmdir_list(gchar *path);
 static gint extract_attachment(AttachInfo *ainfo, gchar *dest, gchar *passwd);
 
 typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
@@ -268,9 +271,15 @@ void plugin_unload(void)
   if (g_hdll!=NULL){
       FreeLibrary(g_hdll);
   }
-  /* TODO: remove tempolary files g_file_enumerate_children or something */
+  /* NOTE: in older GTK version,
+     you cant use GIO, so remove tempolary file listing by myself. */
   gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
                             PLUGIN_DIR,G_DIR_SEPARATOR_S, CHKARCHPASSWD, NULL);
+  my_rmdir(path);
+}
+
+void my_rmdir(gchar *path)
+{
   g_opt.rmlist = NULL;
   my_rmdir_list(path);
   guint n = 0;
@@ -284,8 +293,6 @@ void plugin_unload(void)
     }
   }
   g_rmdir(path);
-  /*GFile *file = g_file_new_for_path(path);
-    g_file_delete(file, NULL, NULL); you cant use gio */
 }
 
 void my_rmdir_list(gchar *dpath)
@@ -296,11 +303,15 @@ void my_rmdir_list(gchar *dpath)
     debug_print("[PLUGIN] path %s\n", path);
     gchar* fpath = g_strconcat(dpath, G_DIR_SEPARATOR_S, path, NULL);
     if (g_file_test(fpath, G_FILE_TEST_IS_DIR)!=FALSE){
+#if DEBUG
       debug_print("[PLUGIN] remove dir %s\n", fpath);
+#endif
       my_rmdir_list(fpath);
       g_opt.rmlist = g_list_append(g_opt.rmlist, fpath);
     }else {
+#if DEBUG
       debug_print("[PLUGIN] remove %s\n", fpath);
+#endif
       g_opt.rmlist = g_list_append(g_opt.rmlist, fpath);
     }
   }
@@ -444,22 +455,19 @@ static void exec_chkarchpasswd_onoff_cb(void)
   }
 }
 
-static Compose* g_compose = NULL;
-
-void compose_created_cb(GObject *obj, gpointer compose)
+void compose_created_cb(GObject *obj, gpointer data)
 {
-  g_compose = (Compose*)compose;
+  Compose *compose = (Compose*)data;
 
 
-#if 0
+#if DEBUG
   /* add check archive button for testing. */
   /* GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_LARGE_TOOLBAR);*/
-  GtkWidget *toolbar = g_compose->toolbar;
-  GtkToolItem *toolitem = NULL;
+  GtkWidget *toolbar = compose->toolbar;
   GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_CDROM, GTK_ICON_SIZE_LARGE_TOOLBAR);  
-  GtkToolItem *toolitem = gtk_tool_button_new(icon, "check attachement");
+  GtkToolItem *toolitem = gtk_tool_button_new(icon, "check attachement password");
   GtkTooltips *tooltips = gtk_tooltips_new();
-  gtk_tool_item_set_tooltip(toolitem, tooltips, "check your mail attachement", "");
+  gtk_tool_item_set_tooltip(toolitem, tooltips, "check your mail attachement password", "");
   gtk_toolbar_insert(GTK_TOOLBAR(toolbar), toolitem, -1);
   
   g_signal_connect(G_OBJECT(toolitem), "clicked",
@@ -479,20 +487,25 @@ void compose_destroy_cb(GObject *obj, gpointer compose)
   /**/
 }
 
+void check_attachement_cb(GObject *obj, gpointer data)
+{
+}
+
 #define MIME_ZIP "application/zip"
 #define MIME_7Z "application/octet-stream"
 
-static gboolean compose_send_cb(GObject *obj, gpointer compose,
+static gboolean compose_send_cb(GObject *obj, gpointer data,
                                 gint compose_mode, gint send_mode,
                                 const gchar *msg_file, GSList *to_list)
 {
 
+  Compose *compose = (Compose*)data;
   debug_print("[PLUGIN] compose_send_cb is called.\n");
 
-  debug_print("Compose* g_compose:%p\n", g_compose);
-  debug_print("gpointer compose:%p\n", compose);
+  debug_print("Compose* compose:%p\n", compose);
+  debug_print("gpointer compose:%p\n", data);
 
-  GtkTreeModel *model = GTK_TREE_MODEL(g_compose->attach_store);
+  GtkTreeModel *model = GTK_TREE_MODEL(compose->attach_store);
   GtkTreeIter iter;
   AttachInfo *ainfo;
   gboolean valid;
@@ -510,8 +523,8 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
   gint npassok = 0;
   gboolean bpasswd = FALSE;
 
-  debug_print("text:%p\n", g_compose->text);
-  GtkTextView *text = GTK_TEXT_VIEW(g_compose->text);
+  debug_print("text:%p\n", compose->text);
+  GtkTextView *text = GTK_TEXT_VIEW(compose->text);
   if (text==NULL){
     debug_print("text is NULL\n");
     return TRUE;
@@ -572,7 +585,7 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
   gchar *msg=NULL;
 
 #if 0
-  GtkTreeView *treeview = GTK_TREE_VIEW(g_compose->attach_treeview);
+  GtkTreeView *treeview = GTK_TREE_VIEW(compose->attach_treeview);
   GtkCellRenderer *renderer;
   GtkTreeViewColumn *column;
 
