@@ -73,6 +73,9 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
 static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey);
 static GtkWidget *create_config_about_page(GtkWidget *notebook, GKeyFile *pkey);
 
+void my_rmdir_list(gchar *dpath);
+static gint extract_attachment(AttachInfo *ainfo, gchar *dest, gchar *passwd);
+
 typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
 typedef BOOL WINAPI (*WINAPI_SEVENZIPSETUNICODEMODE)(BOOL _bUnicode);
 
@@ -117,6 +120,8 @@ struct _ChkArchPasswdOption {
   GtkWidget *show_content_btn;
   GtkWidget *input_entry;
 
+  /* extracted files. */
+  GList *rmlist;
 #ifdef DEBUG
   /* debug inbox folder */
   GtkWidget *dfolder_entry;
@@ -160,7 +165,7 @@ void plugin_load(void)
   debug_print(gettext(PLUGIN_NAME));
   debug_print(dgettext("chkarchpasswd", PLUGIN_DESC));
 
-   info.name = g_strdup(_(PLUGIN_NAME));
+  info.name = g_strdup(_(PLUGIN_NAME));
   info.description = g_strdup(_(PLUGIN_DESC));
   
   syl_plugin_add_menuitem("/Tools", NULL, NULL, NULL);
@@ -176,89 +181,85 @@ void plugin_load(void)
   GtkWidget *statusbar = syl_plugin_main_window_get_statusbar();
   GtkWidget *plugin_box = gtk_hbox_new(FALSE, 0);
 
-    GdkPixbuf* on_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_add);
-    g_plugin_on=gtk_image_new_from_pixbuf(on_pixbuf);
-    /*g_plugin_on = gtk_label_new(_("AF ON"));*/
+  GdkPixbuf* on_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_add);
+  g_plugin_on=gtk_image_new_from_pixbuf(on_pixbuf);
+  /*g_plugin_on = gtk_label_new(_("AF ON"));*/
     
-    GdkPixbuf* off_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_delete);
-    g_plugin_off=gtk_image_new_from_pixbuf(off_pixbuf);
-    /*g_plugin_off = gtk_label_new(_("AF OFF"));*/
+  GdkPixbuf* off_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_delete);
+  g_plugin_off=gtk_image_new_from_pixbuf(off_pixbuf);
+  /*g_plugin_off = gtk_label_new(_("AF OFF"));*/
 
-    gtk_box_pack_start(GTK_BOX(plugin_box), g_plugin_on, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(plugin_box), g_plugin_off, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(plugin_box), g_plugin_on, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(plugin_box), g_plugin_off, FALSE, FALSE, 0);
     
-    g_tooltip = gtk_tooltips_new();
+  g_tooltip = gtk_tooltips_new();
     
-    g_onoff_switch = gtk_button_new();
-    gtk_button_set_relief(GTK_BUTTON(g_onoff_switch), GTK_RELIEF_NONE);
-	GTK_WIDGET_UNSET_FLAGS(g_onoff_switch, GTK_CAN_FOCUS);
-	gtk_widget_set_size_request(g_onoff_switch, 20, 20);
+  g_onoff_switch = gtk_button_new();
+  gtk_button_set_relief(GTK_BUTTON(g_onoff_switch), GTK_RELIEF_NONE);
+  GTK_WIDGET_UNSET_FLAGS(g_onoff_switch, GTK_CAN_FOCUS);
+  gtk_widget_set_size_request(g_onoff_switch, 20, 20);
 
-    gtk_container_add(GTK_CONTAINER(g_onoff_switch), plugin_box);
-	g_signal_connect(G_OBJECT(g_onoff_switch), "clicked",
-                     G_CALLBACK(exec_chkarchpasswd_onoff_cb), mainwin);
-    gtk_box_pack_start(GTK_BOX(statusbar), g_onoff_switch, FALSE, FALSE, 0);
+  gtk_container_add(GTK_CONTAINER(g_onoff_switch), plugin_box);
+  g_signal_connect(G_OBJECT(g_onoff_switch), "clicked",
+                   G_CALLBACK(exec_chkarchpasswd_onoff_cb), mainwin);
+  gtk_box_pack_start(GTK_BOX(statusbar), g_onoff_switch, FALSE, FALSE, 0);
 
-    gtk_widget_show_all(g_onoff_switch);
+  gtk_widget_show_all(g_onoff_switch);
 
-    gtk_widget_hide(g_plugin_on);
-    gtk_widget_show(g_plugin_off);
-    gtk_tooltips_set_tip
-      (g_tooltip, g_onoff_switch,
-       _("Chkpasswd is disabled."),
-       NULL);
+  gtk_widget_hide(g_plugin_on);
+  gtk_widget_show(g_plugin_off);
+  gtk_tooltips_set_tip
+    (g_tooltip, g_onoff_switch,
+     _("Chkpasswd is disabled."),
+     NULL);
 
-    g_opt.flg_startup = FALSE;
-    g_opt.flg_twice = TRUE;
-    g_opt.flg_passwd = FALSE;
+  g_opt.flg_startup = FALSE;
+  g_opt.flg_twice = TRUE;
+  g_opt.flg_passwd = FALSE;
     
-    gchar *rcpath = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, CHKARCHPASSWDRC, NULL);
-    g_opt.rcfile = g_key_file_new();
-    g_opt.rcpath = g_strdup(rcpath);
-    if (g_key_file_load_from_file(g_opt.rcfile, rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL)){
-      g_opt.flg_startup=GET_RC_BOOLEAN("startup");
+  gchar *rcpath = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, CHKARCHPASSWDRC, NULL);
+  g_opt.rcfile = g_key_file_new();
+  g_opt.rcpath = g_strdup(rcpath);
+  if (g_key_file_load_from_file(g_opt.rcfile, rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL)){
+    g_opt.flg_startup=GET_RC_BOOLEAN("startup");
 
-      if (g_opt.flg_startup != FALSE){
-        g_enable=TRUE;
+    if (g_opt.flg_startup != FALSE){
+      g_enable=TRUE;
+      gtk_widget_hide(g_plugin_off);
+      gtk_widget_show(g_plugin_on);
+      gtk_tooltips_set_tip(g_tooltip, g_onoff_switch,
+                           _("Chkarchpasswd is enabled. Click the icon to disable plugin."),
+                           NULL);
+
+      if (g_hdll){
         gtk_widget_hide(g_plugin_off);
         gtk_widget_show(g_plugin_on);
-        gtk_tooltips_set_tip(g_tooltip, g_onoff_switch,
-                             _("Chkarchpasswd is enabled. Click the icon to disable plugin."),
-                             NULL);
-
-        if (g_hdll){
-          gtk_widget_hide(g_plugin_off);
-          gtk_widget_show(g_plugin_on);
-          gtk_tooltips_set_tip
-            (g_tooltip, g_onoff_switch,
-             _("Chkpasswd is enabled."),
-             NULL);
-        }else {
-          gtk_widget_hide(g_plugin_on);
-          gtk_widget_show(g_plugin_off);
-          gtk_tooltips_set_tip
-            (g_tooltip, g_onoff_switch,
-             _("Chkpasswd is disabled."),
-             NULL);
-        }
+        gtk_tooltips_set_tip
+          (g_tooltip, g_onoff_switch,
+           _("Chkpasswd is enabled."),
+           NULL);
+      }else {
+        gtk_widget_hide(g_plugin_on);
+        gtk_widget_show(g_plugin_off);
+        gtk_tooltips_set_tip
+          (g_tooltip, g_onoff_switch,
+           _("Chkpasswd is disabled."),
+           NULL);
       }
-        
-      g_opt.flg_twice= GET_RC_BOOLEAN( "twice");
-
-      g_opt.flg_passwd=GET_RC_BOOLEAN( "passwd");
-      
-      g_free(rcpath);
     }
+        
+    g_opt.flg_twice= GET_RC_BOOLEAN( "twice");
 
-    debug_print("[PLUGIN] chkarchpasswdrc startup:%d\n", g_opt.flg_startup);
-    debug_print("[PLUGIN] chkarchpasswdrc twice:%d\n", g_opt.flg_twice);
-    debug_print("[PLUGIN] chkarchpasswdrc passwd:%d\n", g_opt.flg_passwd);
-    debug_print("[PLUGIN] chkarchpasswd_tool plug-in loading done.\n");
+    g_opt.flg_passwd=GET_RC_BOOLEAN( "passwd");
+      
+    g_free(rcpath);
+  }
 
-    gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
-                              PLUGIN_DIR,G_DIR_SEPARATOR_S, CHKARCHPASSWD, NULL);
-    my_rmdir(path);
-    g_rmdir(path);
+  debug_print("[PLUGIN] chkarchpasswdrc startup:%d\n", g_opt.flg_startup);
+  debug_print("[PLUGIN] chkarchpasswdrc twice:%d\n", g_opt.flg_twice);
+  debug_print("[PLUGIN] chkarchpasswdrc passwd:%d\n", g_opt.flg_passwd);
+  debug_print("[PLUGIN] chkarchpasswd_tool plug-in loading done.\n");
+
 }
 
 void plugin_unload(void)
@@ -270,26 +271,37 @@ void plugin_unload(void)
   /* TODO: remove tempolary files g_file_enumerate_children or something */
   gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
                             PLUGIN_DIR,G_DIR_SEPARATOR_S, CHKARCHPASSWD, NULL);
-  my_rmdir(path);
+  g_opt.rmlist = NULL;
+  my_rmdir_list(path);
+  guint n = 0;
+  for (n = 0;n< g_list_length(g_opt.rmlist); n++){
+    gchar *path = (gchar*)g_list_nth_data(g_opt.rmlist, n);
+    debug_print("list[%d]:%s\n", n, path);
+    if (g_file_test(path, G_FILE_TEST_IS_DIR)!=FALSE){
+      g_rmdir(path);
+    } else {
+      g_remove(path);
+    }
+  }
   g_rmdir(path);
-  debug_print("[PLUGIN] remove %s\n", path);
   /*GFile *file = g_file_new_for_path(path);
     g_file_delete(file, NULL, NULL); you cant use gio */
 }
 
-void my_rmdir(gchar *dpath)
+void my_rmdir_list(gchar *dpath)
 {
   GDir *g_dir = g_dir_open(dpath, 0, NULL);
   gchar *path = NULL;
-  while ((path = g_dir_read_name(g_dir))!=NULL){
+  while ((path = (gchar*)g_dir_read_name(g_dir))!=NULL){
     debug_print("[PLUGIN] path %s\n", path);
     gchar* fpath = g_strconcat(dpath, G_DIR_SEPARATOR_S, path, NULL);
-    if (!g_file_test(path, G_FILE_TEST_IS_DIR)){
-      debug_print("[PLUGIN] remove %s\n", fpath);
-      g_unlink(fpath);
+    if (g_file_test(fpath, G_FILE_TEST_IS_DIR)!=FALSE){
+      debug_print("[PLUGIN] remove dir %s\n", fpath);
+      my_rmdir_list(fpath);
+      g_opt.rmlist = g_list_append(g_opt.rmlist, fpath);
     }else {
-      debug_print("[PLUGIN] remove dir %s\n", path);
-      my_rmdir(fpath);
+      debug_print("[PLUGIN] remove %s\n", fpath);
+      g_opt.rmlist = g_list_append(g_opt.rmlist, fpath);
     }
   }
   g_dir_close(g_dir);
@@ -593,17 +605,11 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
         gchar *msg=NULL;
         gchar *passwd=NULL;
         bpasswd=FALSE;
-        char buf[1024];
-        DWORD dwSize = 0;
         /* input password for archive */
-        gchar *com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -o\"%s\" -r",
-                              ainfo->file, path);
-        nblank = hZip(NULL, com, buf, dwSize);
+        nblank = extract_attachment(ainfo, path, NULL);
         g_print("%s blank password result:%08x\n", ainfo->name,nblank);
 
-        com = g_strdup_printf("x \"%s\" -aoa -p\"test\" -hide -o\"%s\" -r",
-                              ainfo->file, path);
-        npasswd = hZip(NULL, com, buf, dwSize);
+        npasswd = extract_attachment(ainfo, path, "test");
         g_print("%s invalid password result:%08x\n",ainfo->name, npasswd);
 
         if (nblank == 0x0000800a && npasswd == 0x00000000){
@@ -629,9 +635,7 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
               syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
 #endif
             }else {
-              com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
-                                    ainfo->file, passwd, path);
-              npasswd = hZip(NULL, com, buf, dwSize);
+              npasswd = extract_attachment(ainfo, path, passwd);
               if (npasswd == 0x00000000){
               } else if (npasswd == 0x0000800a){
                 /* bad password */
@@ -647,10 +651,8 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
           gboolean bmatch = FALSE;
           for (pwidx = 0; pwidx < g_list_length(pwlist); pwidx++){
             gchar *passwd = g_list_nth_data(pwlist, pwidx);
-              com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
-                                    ainfo->file, passwd, path);
               g_print("check password %s for %s\n",passwd, ainfo->name);
-              nblank = hZip(NULL, com, buf, dwSize);
+              nblank = extract_attachment(ainfo, path, passwd);
               if (nblank == 0x00000000){
                 g_print("%s blank password result:%08x\n", ainfo->name,nblank);
                 bmatch = TRUE;
@@ -667,22 +669,20 @@ static gboolean compose_send_cb(GObject *obj, gpointer compose,
   }
   gboolean bcancel = TRUE;
   if ( npasstotal > 0 && npassok == npasstotal){
-#if 0
-    syl_plugin_alertpanel("", _("password is not empty. sending mail..."),
-                                    GTK_STOCK_OK,NULL, NULL);
-#endif
+    debug_print("[PLUGIN] password is not empty. sending mail...");
     bcancel = FALSE;
   }else if (npasstotal > 0 && npassok < npasstotal){
     gint val = syl_plugin_alertpanel("", _("attachment password is empty. Do you want to send?"),
                                      GTK_STOCK_YES, GTK_STOCK_NO, NULL);
     if (val != 0){
-      /* cancel */
+      /* no is selected. */
       return TRUE;
     }
     if ( g_opt.flg_twice != FALSE){
       val = syl_plugin_alertpanel("", _("attachment password is empty. Do you really want to send?"),
                                   GTK_STOCK_NO, GTK_STOCK_YES, NULL);
       if (val == 0){
+        /* no is selected. */
         return TRUE;
       }
     }
@@ -778,3 +778,14 @@ static GtkWidget *create_config_about_page(GtkWidget *notebook, GKeyFile *pkey)
   return NULL;
 }
 
+static gint extract_attachment(AttachInfo *ainfo, gchar *dest, gchar *passwd)
+{
+  gint nresult = 0;
+  gchar buf[1024];
+  DWORD dwSize = 0;
+  gchar *com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -o\"%s\" -r",
+                               ainfo->file, dest);
+  nresult = hZip(NULL, com, buf, dwSize);
+  g_free(com);
+  return nresult;
+}
