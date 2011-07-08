@@ -19,7 +19,7 @@ function compile ()
         echo "compile error"
         exit
     fi
-    com="gcc -shared -o $TARGET $OBJS -L./lib $LIBSYLPH $LIBSYLPHEED $LIBS -lssleay32 -leay32 -lws2_32 -liconv -lonig"
+    com="gcc -shared -o $TARGET $OBJS -L./lib $LIBSYLPH $LIBSYLPHEED $LIBS -lssleay32 -leay32 -lws2_32 -liconv"
     echo $com
     eval $com
     if [ $? != 0 ]; then

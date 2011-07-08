@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-04 14:40+0900\n"
+"POT-Creation-Date: 2011-07-09 01:29+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,20 +16,21 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: chkarchpasswd.c:53
+#: chkarchpasswd.c:52
 msgid "Check attachment password Plug-in"
 msgstr ""
 
-#: chkarchpasswd.c:54
+#: chkarchpasswd.c:53
 msgid "Check password of your mail attachment(*.zip), when you send mail."
 msgstr ""
 
-#: chkarchpasswd.c:127
+#: chkarchpasswd.c:138
 msgid ""
 "Chkarchpasswd is distributed under GPL license.\n"
 "\n"
 "Copyright (C) 2011 HAYASHI Kentaro <kenhys@gmail.com>\n"
-"chkarchpasswd contains following resource.\n"
+"chkarchpasswd contains following resource as statusbar icon.\n"
+"\n"
 "\n"
 "Silk icon set 1.3: Copyright (C) Mark James\n"
 "Licensed under a Creative Commons Attribution 2.5 License.\n"
@@ -37,82 +38,83 @@ msgid ""
 "\n"
 msgstr ""
 
-#: chkarchpasswd.c:164
+#: chkarchpasswd.c:175
 msgid "Chkarchpasswd Settings [chkarchpasswd]"
 msgstr ""
 
-#: chkarchpasswd.c:205 chkarchpasswd.c:235
+#: chkarchpasswd.c:216 chkarchpasswd.c:249
 msgid "Chkpasswd is disabled."
 msgstr ""
 
-#: chkarchpasswd.c:220 chkarchpasswd.c:374
+#: chkarchpasswd.c:234 chkarchpasswd.c:445
 msgid "Chkarchpasswd is enabled. Click the icon to disable plugin."
 msgstr ""
 
-#: chkarchpasswd.c:228
+#: chkarchpasswd.c:242
 msgid "Chkpasswd is enabled."
 msgstr ""
 
-#: chkarchpasswd.c:353
+#: chkarchpasswd.c:424
 msgid "Chkarchpasswd Settings"
 msgstr ""
 
-#: chkarchpasswd.c:368 chkarchpasswd.c:378
+#: chkarchpasswd.c:439 chkarchpasswd.c:449
 msgid "Chkarchpasswd"
 msgstr ""
 
-#: chkarchpasswd.c:368
+#: chkarchpasswd.c:439
 msgid "chkarchpasswd plugin is enabled."
 msgstr ""
 
-#: chkarchpasswd.c:378
+#: chkarchpasswd.c:449
 msgid "chkarchpasswd plugin is disabled."
 msgstr ""
 
-#: chkarchpasswd.c:384
+#: chkarchpasswd.c:455
 msgid "Chkarchpasswd is disabled. Click the icon to enable plugin."
 msgstr ""
 
-#: chkarchpasswd.c:542
+#: chkarchpasswd.c:645
 #, possible-c-format
 msgid "enter password for attachment(%s)."
 msgstr ""
 
-#: chkarchpasswd.c:595
+#: chkarchpasswd.c:655
+#, possible-c-format
+msgid "password (%s) for attachment(%s) is not valid."
+msgstr ""
+
+#: chkarchpasswd.c:672
 #, possible-c-format
 msgid "attachment(%s) password (%s) is described in mail body."
 msgstr ""
 
-#: chkarchpasswd.c:609
-msgid "password is not empty. sending mail..."
-msgstr ""
-
-#: chkarchpasswd.c:614
+#: chkarchpasswd.c:688
 msgid "attachment password is empty. Do you want to send?"
 msgstr ""
 
-#: chkarchpasswd.c:620
+#: chkarchpasswd.c:695
 msgid "attachment password is empty. Do you really want to send?"
 msgstr ""
 
-#: chkarchpasswd.c:647
+#: chkarchpasswd.c:724
 msgid "Enable plugin on startup."
 msgstr ""
 
-#: chkarchpasswd.c:651
+#: chkarchpasswd.c:728
 msgid ""
 "Enable confirmation twice before sending mail without password for "
 "attachement."
 msgstr ""
 
-#: chkarchpasswd.c:654
+#: chkarchpasswd.c:731
 msgid "Enable password validation for attachment."
 msgstr ""
 
-#: chkarchpasswd.c:657
+#: chkarchpasswd.c:734
 msgid "General"
 msgstr ""
 
-#: chkarchpasswd.c:710
+#: chkarchpasswd.c:788
 msgid "About"
 msgstr ""

@@ -342,17 +342,17 @@ static void prefs_ok_cb(GtkWidget *widget, gpointer data)
 
   g_key_file_load_from_file(g_opt.rcfile, g_opt.rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL);
 
-  gboolean status = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_opt.chk_startup));
-  g_key_file_set_boolean (g_opt.rcfile, CHKARCHPASSWD, "startup", status);
-  debug_print("startup:%s\n", status ? "TRUE" : "FALSE");
+  g_opt.flg_startup = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_opt.chk_startup));
+  g_key_file_set_boolean (g_opt.rcfile, CHKARCHPASSWD, "startup", g_opt.flg_startup);
+  debug_print("startup:%s\n", g_opt.flg_startup ? "TRUE" : "FALSE");
 
-  status = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_opt.chk_twice));
-  g_key_file_set_boolean (g_opt.rcfile, CHKARCHPASSWD, "twice", status);
-  debug_print("check twice:%s\n", status ? "TRUE" : "FALSE");
+  g_opt.flg_twice = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_opt.chk_twice));
+  g_key_file_set_boolean (g_opt.rcfile, CHKARCHPASSWD, "twice", g_opt.flg_twice);
+  debug_print("check twice:%s\n", g_opt.flg_twice ? "TRUE" : "FALSE");
 
-  status = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_opt.chk_passwd));
-  g_key_file_set_boolean (g_opt.rcfile, CHKARCHPASSWD, "passwd", status);
-  debug_print("check passwd:%s\n", status ? "TRUE" : "FALSE");
+  g_opt.flg_passwd = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_opt.chk_passwd));
+  g_key_file_set_boolean (g_opt.rcfile, CHKARCHPASSWD, "passwd", g_opt.flg_passwd);
+  debug_print("check passwd:%s\n", g_opt.flg_passwd ? "TRUE" : "FALSE");
 
   /**/
   gsize sz;
