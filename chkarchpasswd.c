@@ -327,10 +327,12 @@ SylPluginInfo *plugin_info(void)
 gint plugin_interface_version(void)
 {
 #if RELEASE_3_1
-    /* emulate sylpheed 3.x not svn HEAD */
+    /* emulate sylpheed 3.1.0 not svn HEAD */
     return 0x0107;
 #else
-    return SYL_PLUGIN_INTERFACE_VERSION;
+    /* sylpheed 3.2.0 or later. */
+    return 0x0108;
+    /*return SYL_PLUGIN_INTERFACE_VERSION;*/
 #endif
 }
 
@@ -643,10 +645,8 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
             msg = g_strdup_printf(_("enter password for attachment(%s)."), ainfo->name);
             passwd = syl_plugin_input_dialog("password", msg, "input password here");
             if (passwd==NULL){
-#if 0
-              msg=g_strdup_printf("skip password check for attachement(%s)", ainfo->name);
-              syl_plugin_alertpanel("", msg, GTK_STOCK_OK,NULL, NULL);
-#endif
+              debug_print("[PLUGIN] skip password check for attachement(%s)\n", ainfo->name);
+              return TRUE;
             }else {
               npasswd = extract_attachment(ainfo, path, passwd);
               if (npasswd == 0x00000000){
@@ -796,8 +796,14 @@ static gint extract_attachment(AttachInfo *ainfo, gchar *dest, gchar *passwd)
   gint nresult = 0;
   gchar buf[1024];
   DWORD dwSize = 0;
-  gchar *com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -o\"%s\" -r",
+  gchar *com = NULL;
+  if (passwd!=NULL){
+      com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
+                            ainfo->file, passwd, dest);
+  } else {
+      com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -o\"%s\" -r",
                                ainfo->file, dest);
+  }
   nresult = hZip(NULL, com, buf, dwSize);
   g_free(com);
   return nresult;
