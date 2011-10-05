@@ -1,17 +1,28 @@
 
 NAME=chkarchpasswd
 TARGET=$NAME.dll
-OBJS=$NAME.o 
+OBJS="$NAME.o version.o"
 LIBSYLPH=./lib/libsylph-0-1.a
 LIBSYLPHEED=./lib/libsylpheed-plugin-0-1.a
-INC=" -I. -I./include -I../../ -I../../libsylph -I../../src "
-INC="$INC `pkg-config --cflags glib-2.0 cairo gdk-2.0 atk `"
-DEF=" $DEF -DHAVE_CONFIG_H -DUNICODE -D_UNICODE"
-
+#LIBS=" -lglib-2.0-0  -lintl"
 LIBS=" `pkg-config --libs glib-2.0 gobject-2.0 gtk+-2.0`"
+INC=" -I. -I./include -I../../ -I../../libsylph -I../../src `pkg-config --cflags glib-2.0 cairo gdk-2.0 gtk+-2.0`"
+DEF=" -DHAVE_CONFIG_H"
 
 function compile ()
 {
+    if [ ! -f "private_build.h" ]; then
+        echo "1" > .compile
+        echo "#define PRIVATE_BUILD 1" > private_build.h
+    else
+        ret=`cat .compile | gawk '{print $i+1}'`
+        echo $ret | tee .compile
+        echo "#define PRIVATE_BUILD \"build $ret\\0\"" > private_build.h
+    fi
+    com="windres -i version.rc -o version.o"
+    echo $com
+    eval $com
+
     com="gcc -Wall -c $DEF $INC $NAME.c"
     echo $com
     eval $com
@@ -19,26 +30,20 @@ function compile ()
         echo "compile error"
         exit
     fi
-    com="gcc -shared -o $TARGET $OBJS -L./lib $LIBSYLPH $LIBSYLPHEED $LIBS -lssleay32 -leay32 -lws2_32 -liconv"
+    com="gcc -shared -o $TARGET $OBJS -L./lib $LIBSYLPH $LIBSYLPHEED $LIBS -lssleay32 -leay32 -lws2_32 -liconv "
     echo $com
     eval $com
     if [ $? != 0 ]; then
         echo "done"
     else
-        DEST="/C/Users/$LOGNAME/AppData/Roaming/Sylpheed/plugins"
-        if [ -d "$DEST" ]; then
-            com="cp $TARGET $DEST/$NAME.dll"
+        if [ -d "$SYLPLUGINDIR" ]; then
+            com="cp $TARGET \"$SYLPLUGINDIR/$NAME.dll\""
             echo $com
             eval $com
         else
-            DEST="/C/Documents and Settings/$LOGNAME/Application Data/Sylpheed/plugins"
-            if [ -d "$DEST" ]; then
-                com="cp $TARGET \"$DEST/$NAME.dll\""
-                echo $com
-                eval $com
+            :
             fi
         fi
-    fi
 
 }
 
@@ -68,9 +73,8 @@ else
                 com="msgfmt po/ja.po -o po/$NAME.mo"
                 echo $com
                 eval $com
-                DEST="/C/apps/Sylpheed/lib/locale/ja/LC_MESSAGES"
-                if [ -d "$DEST" ]; then
-                    com="cp po/$NAME.mo $DEST/$NAME.mo"
+                if [ -d "$SYLLOCALEDIR" ]; then
+                    com="cp po/$NAME.mo \"$SYLLOCALEDIR/$NAME.mo\""
                     echo $com
                     eval $com
                 fi
@@ -82,16 +86,23 @@ else
                 eval $com
                 shift
                 ;;
+            res)
+                com="windres -i version.rc -o version.o"
+                echo $com
+                eval $com
+                shift
+                ;;
             -r|release)
                 shift
                 if [ ! -z "$1" ]; then
-                    r=$1
                     shift
-                    zip sylpheed-${NAME}-${r}.zip $NAME.dll
-                    zip -r sylpheed-${NAME}-${r}.zip README.ja.txt
-                    #zip -r sylpheed-$NAME-$r.zip $NAME.c
-                    zip -r sylpheed-${NAME}-${r}.zip po/$NAME.mo
-                    zip -r sylpheed-${NAME}-${r}.zip *.xpm
+                    r=$1
+                    zip sylpheed-$NAME-$r.zip $NAME.dll
+                    zip -r sylpheed-$NAME-$r.zip README
+                    zip -r sylpheed-$NAME-$r.zip README.ja.txt
+                    zip -r sylpheed-$NAME-$r.zip $NAME.c
+                    zip -r sylpheed-$NAME-$r.zip po/$NAME.mo
+                    zip -r sylpheed-$NAME-$r.zip *.xpm
                     sha1sum sylpheed-${NAME}-${r}.zip > sylpheed-$NAME-$r.zip.sha1sum
                 fi
                 ;;
@@ -142,20 +153,13 @@ else
                 eval $com
                 exit
                 ;;
-            release)
+            clean)
+                rm -f *.o *.lo *.la *.bak *~
                 shift
-                if [ ! -z "$1" ]; then
-                    VER=$1
+                ;;
+            cleanall|distclean)
+                rm -f *.o *.lo *.la *.bak *.dll *.zip
                     shift
-                    zip sylpheed-$NAME-$VER.zip chkarchpasswd.dll
-                    zip -r sylpheed-$NAME-$VER.zip README.ja.txt
-                    zip -r sylpheed-$NAME-$VER.zip ChangeLog
-          #zip -r sylpheed-$NAME-$VER.zip $NAME.c
-                    zip -r sylpheed-$NAME-$VER.zip po/$NAME.mo
-                    zip -r sylpheed-$NAME-$VER.zip *.xpm
-                    sha1sum sylpheed-$NAME-$VER.zip > sylpheed-$NAME-$VER.zip.sha1sum
-                fi
-                
                 ;;
             *)
                 shift
