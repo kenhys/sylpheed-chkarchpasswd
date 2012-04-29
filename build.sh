@@ -1,7 +1,7 @@
 
 NAME=chkarchpasswd
-TARGET=$NAME.dll
-OBJS="$NAME.o version.o"
+TARGET=src/$NAME.dll
+OBJS="src/$NAME.o src/version.o"
 LIBSYLPH=./lib/libsylph-0-1.a
 LIBSYLPHEED=./lib/libsylpheed-plugin-0-1.a
 #LIBS=" -lglib-2.0-0  -lintl"
