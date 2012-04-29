@@ -33,8 +33,8 @@
 #include "alertpanel.h"
 #include "compose.h"
 
-#include "key_add.xpm"
-#include "key_delete.xpm"
+#include "../res/key_add.xpm"
+#include "../res/key_delete.xpm"
 
 #include "unlha32.h"
 #include "unzip32.h"
