@@ -81,12 +81,14 @@ void my_rmdir(gchar *path);
 void my_rmdir_list(gchar *path);
 static gint extract_attachment(AttachInfo *ainfo, gchar *dest, gchar *passwd);
 
+#if defined(G_OS_WIN32)
 typedef int WINAPI (*WINAPI_SEVENZIP)(const HWND _hwnd, LPCSTR _szCmdLine, LPSTR _szOutput, const DWORD _dwSize);
 typedef BOOL WINAPI (*WINAPI_SEVENZIPSETUNICODEMODE)(BOOL _bUnicode);
 
 static HANDLE g_hdll = NULL;
 static WINAPI_SEVENZIP hZip = NULL;
 static WINAPI_SEVENZIPSETUNICODEMODE hUniZip = NULL;
+#endif
 
 static gboolean g_enable = FALSE;
 
@@ -153,6 +155,7 @@ void plugin_load(void)
 {
   debug_print("[PLUGIN] initializing chkarchpasswd plug-in\n");
 
+#if defined(G_OS_WIN32)
   g_hdll = LoadLibrary(L"7-zip32.dll");
   if (g_hdll==NULL){
     debug_print("failed to load 7-zip32.dll\n");
@@ -164,6 +167,7 @@ void plugin_load(void)
       hUniZip(TRUE);
     }
   }
+#endif
 
   syl_init_gettext("chkarchpasswd", "lib/locale");
 
@@ -236,6 +240,7 @@ void plugin_load(void)
                            _("Chkarchpasswd is enabled. Click the icon to disable plugin."),
                            NULL);
 
+#if defined(G_OS_WIN32)
       if (g_hdll){
         gtk_widget_hide(g_plugin_off);
         gtk_widget_show(g_plugin_on);
@@ -251,6 +256,7 @@ void plugin_load(void)
            _("Chkpasswd is disabled."),
            NULL);
       }
+#endif
     }
         
     g_opt.flg_twice= GET_RC_BOOLEAN( "twice");
@@ -270,9 +276,11 @@ void plugin_load(void)
 void plugin_unload(void)
 {
   debug_print("chkarchpasswd_tool plug-in unloaded.\n");
+#if defined(G_OS_WIN32)
   if (g_hdll!=NULL){
       FreeLibrary(g_hdll);
   }
+#endif
   /* NOTE: in older GTK version,
      you cant use GIO, so remove tempolary file listing by myself. */
   gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
@@ -437,6 +445,7 @@ static void exec_chkarchpasswd_onoff_cb(void)
 {
 
   if (g_enable != TRUE){
+#if defined(G_OS_WIN32)
     if (g_hdll!=NULL){
       syl_plugin_alertpanel_message(_("Chkarchpasswd"), _("chkarchpasswd plugin is enabled."), ALERT_NOTICE);
       g_enable=TRUE;
@@ -447,6 +456,7 @@ static void exec_chkarchpasswd_onoff_cb(void)
          _("Chkarchpasswd is enabled. Click the icon to disable plugin."),
          NULL);
     }
+#endif
   }else{
     syl_plugin_alertpanel_message(_("Chkarchpasswd"), _("chkarchpasswd plugin is disabled."), ALERT_NOTICE);
     g_enable=FALSE;
@@ -797,7 +807,9 @@ static gint extract_attachment(AttachInfo *ainfo, gchar *dest, gchar *passwd)
 {
   gint nresult = 0;
   gchar buf[1024];
+#if defined(G_OS_WIN32)
   DWORD dwSize = 0;
+#endif
   gchar *com = NULL;
   if (passwd!=NULL){
       com = g_strdup_printf("x \"%s\" -aoa -p\"%s\" -hide -o\"%s\" -r",
@@ -806,7 +818,9 @@ static gint extract_attachment(AttachInfo *ainfo, gchar *dest, gchar *passwd)
       com = g_strdup_printf("x \"%s\" -aoa -p\"\" -hide -o\"%s\" -r",
                                ainfo->file, dest);
   }
+#if defined(G_OS_WIN32)
   nresult = hZip(NULL, com, buf, dwSize);
+#endif
   g_free(com);
   return nresult;
 }
