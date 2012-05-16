@@ -36,9 +36,11 @@
 #include "../res/key_add.xpm"
 #include "../res/key_delete.xpm"
 
-#include "unlha32.h"
-#include "unzip32.h"
+#if defined(G_OS_WIN32)
+#include "UNLHA32.H"
+#include "UNZIP32.H"
 #include "7-zip32.h"
+#endif
 
 #include <glib/gi18n-lib.h>
 #include <locale.h>
