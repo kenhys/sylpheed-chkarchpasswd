@@ -1,33 +1,30 @@
-2011-07-09 HAYASHI Kentaro <kenhys@gmail.com>
-	* version 0.6.0
-	  fix changed compose-send API.
-	
-2011-06-08 HAYASHI Kentaro <kenhys@gmail.com>
-	* version 0.5.0
-	  use official compose-send API.
-	
-2011-03-08 HAYASHI Kentaro <kenhys@gmail.com>
-	
-	* version 0.4.0
-	  support unicode mode.
-	  fix sending non-zip attachment.
-	
-2011-03-07 HAYASHI Kentaro <kenhys@gmail.com>
-	
-	* version 0.3.0
-	  support check password in mail body.
-	
-2011-03-07 HAYASHI Kentaro <kenhys@gmail.com>
-	
-	* version 0.2.0
-	  fix SEGV.
-	
-2011-03-04 HAYASHI Kentaro <kenhys@gmail.com>
-	
-	* version 0.2.0 alpha
-	  release demo edition.
-	
-2011-03-02 HAYASHI Kentaro <kenhys@gmail.com>
-	
-	* version 0.1.0
-	  check zip password.
+News of chkarchpasswd
+
+* 0.6.0 (2011-07-09)
+
+  * fix changed compose-send API.
+
+* 0.5.0 (2011-06-08)
+
+  * use official compose-send API.
+
+* 0.4.0 (2011-03-08)
+
+  * support unicode mode.
+  * fix sending non-zip attachment.
+
+* 0.3.0 (2011-03-07)
+
+  * support check password in mail body.
+
+* 0.2.0 (2011-03-07)
+
+  * fix SEGV.
+
+* 0.2.0 alpha (2011-03-04)
+
+  * release demo edition.
+
+* 0.1.0 (2011-03-02)
+
+  * check zip password.
