@@ -2,7 +2,7 @@ libdir = $(plugindir)
 
 lib_LTLIBRARIES = chkarchpasswd.la
 
-chkarchpasswd_la_SOURCES = src/chkarchpasswd.c
+chkarchpasswd_la_SOURCES = chkarchpasswd.c
 chkarchpasswd_la_LDFLAGS = -module -no-undefined -avoid-version
 
 INCLUDES = \
