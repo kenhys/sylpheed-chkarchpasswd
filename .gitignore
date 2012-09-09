@@ -1,5 +1,9 @@
-lib/*.dll
-lib/lib*.dll.def
+.libs
+.deps
+*.in
+*.la
+*.lo
+*.def
 *.dll
 ulh3267a
 unzp542
@@ -9,3 +13,4 @@ unzp542d
 *.zip
 *.lzh
 *.7z
+Makefile
