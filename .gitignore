@@ -13,4 +13,10 @@ unzp542d
 *.zip
 *.lzh
 *.7z
+config.*
+autom4te.*
+config/*
+m4/lib*
+m4/lt*
+configure
 Makefile
