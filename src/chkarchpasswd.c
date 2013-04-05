@@ -151,6 +151,13 @@ static gchar* g_copyright = N_("Chkarchpasswd is distributed under GPL license.\
 
 void plugin_load(void)
 {
+  GtkWidget *mainwin;
+  GtkWidget *statusbar;
+  GtkWidget *plugin_box;
+  GdkPixbuf* on_pixbuf;
+  GdkPixbuf* off_pixbuf;
+  gchar *rcpath;
+  
   debug_print("[PLUGIN] initializing chkarchpasswd plug-in\n");
 
 #if defined(G_OS_WIN32)
@@ -184,15 +191,16 @@ void plugin_load(void)
 
   syl_plugin_signal_connect("compose-send", G_CALLBACK(compose_send_cb), NULL);
 
-  GtkWidget *mainwin = syl_plugin_main_window_get();
-  GtkWidget *statusbar = syl_plugin_main_window_get_statusbar();
-  GtkWidget *plugin_box = gtk_hbox_new(FALSE, 0);
 
-  GdkPixbuf* on_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_add);
+  mainwin = syl_plugin_main_window_get();
+  statusbar = syl_plugin_main_window_get_statusbar();
+  plugin_box = gtk_hbox_new(FALSE, 0);
+
+  on_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_add);
   g_plugin_on=gtk_image_new_from_pixbuf(on_pixbuf);
   /*g_plugin_on = gtk_label_new(_("AF ON"));*/
     
-  GdkPixbuf* off_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_delete);
+  off_pixbuf = gdk_pixbuf_new_from_xpm_data((const char**)key_delete);
   g_plugin_off=gtk_image_new_from_pixbuf(off_pixbuf);
   /*g_plugin_off = gtk_label_new(_("AF OFF"));*/
 
@@ -224,7 +232,7 @@ void plugin_load(void)
   g_opt.flg_twice = TRUE;
   g_opt.flg_passwd = FALSE;
     
-  gchar *rcpath = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, CHKARCHPASSWDRC, NULL);
+  rcpath = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S, CHKARCHPASSWDRC, NULL);
   g_opt.rcfile = g_key_file_new();
   g_opt.rcpath = g_strdup(rcpath);
   if (g_key_file_load_from_file(g_opt.rcfile, rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL)){
@@ -273,6 +281,8 @@ void plugin_load(void)
 
 void plugin_unload(void)
 {
+  gchar *path;
+
   debug_print("chkarchpasswd_tool plug-in unloaded.\n");
 #if defined(G_OS_WIN32)
   if (g_hdll!=NULL){
@@ -281,18 +291,19 @@ void plugin_unload(void)
 #endif
   /* NOTE: in older GTK version,
      you cant use GIO, so remove tempolary file listing by myself. */
-  gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
+  path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
                             PLUGIN_DIR,G_DIR_SEPARATOR_S, CHKARCHPASSWD, NULL);
   my_rmdir(path);
 }
 
 void my_rmdir(gchar *path)
 {
+  guint n = 0;
+
   g_opt.rmlist = NULL;
   my_rmdir_list(path);
-  guint n = 0;
   for (n = 0;n< g_list_length(g_opt.rmlist); n++){
-    gchar *path = (gchar*)g_list_nth_data(g_opt.rmlist, n);
+    path = (gchar*)g_list_nth_data(g_opt.rmlist, n);
     debug_print("list[%d]:%s\n", n, path);
     if (g_file_test(path, G_FILE_TEST_IS_DIR)!=FALSE){
       g_rmdir(path);
@@ -305,11 +316,12 @@ void my_rmdir(gchar *path)
 
 void my_rmdir_list(gchar *dpath)
 {
+  gchar *fpath;
   GDir *g_dir = g_dir_open(dpath, 0, NULL);
   gchar *path = NULL;
   while ((path = (gchar*)g_dir_read_name(g_dir))!=NULL){
     debug_print("[PLUGIN] path %s\n", path);
-    gchar* fpath = g_strconcat(dpath, G_DIR_SEPARATOR_S, path, NULL);
+    fpath = g_strconcat(dpath, G_DIR_SEPARATOR_S, path, NULL);
     if (g_file_test(fpath, G_FILE_TEST_IS_DIR)!=FALSE){
 #if DEBUG
       debug_print("[PLUGIN] remove dir %s\n", fpath);
@@ -347,6 +359,8 @@ gint plugin_interface_version(void)
 
 static void prefs_ok_cb(GtkWidget *widget, gpointer data)
 {
+  gsize sz;
+  gchar *buf;
 
   g_key_file_load_from_file(g_opt.rcfile, g_opt.rcpath, G_KEY_FILE_KEEP_COMMENTS, NULL);
 
@@ -363,8 +377,7 @@ static void prefs_ok_cb(GtkWidget *widget, gpointer data)
   debug_print("check passwd:%s\n", g_opt.flg_passwd ? "TRUE" : "FALSE");
 
   /**/
-  gsize sz;
-  gchar *buf=g_key_file_to_data(g_opt.rcfile, &sz, NULL);
+  buf = g_key_file_to_data(g_opt.rcfile, &sz, NULL);
   g_file_set_contents(g_opt.rcpath, buf, sz, NULL);
 
   gtk_widget_destroy(GTK_WIDGET(data));
@@ -378,14 +391,16 @@ static void prefs_cancel_cb(GtkWidget *widget, gpointer data)
 
 static void exec_chkarchpasswd_menu_cb(void)
 {
-  debug_print("[PLUGIN] exec_chkarchpasswd_menu_cb is called.\n");
-
-  /* show modal dialog */
   GtkWidget *window;
   GtkWidget *vbox;
   GtkWidget *confirm_area;
   GtkWidget *ok_btn;
   GtkWidget *cancel_btn;
+  GtkWidget *notebook;
+
+  debug_print("[PLUGIN] exec_chkarchpasswd_menu_cb is called.\n");
+
+  /* show modal dialog */
 
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width(GTK_CONTAINER(window), 8);
@@ -400,7 +415,7 @@ static void exec_chkarchpasswd_menu_cb(void)
   gtk_container_add(GTK_CONTAINER(window), vbox);
 
   /* notebook */ 
-  GtkWidget *notebook = gtk_notebook_new();
+  notebook = gtk_notebook_new();
   /* main tab */
   create_config_main_page(notebook, g_opt.rcfile);
   /* about, copyright tab */
@@ -472,7 +487,6 @@ void compose_created_cb(GObject *obj, gpointer data)
   Compose *compose = (Compose*)data;
 
 
-#if DEBUG
   /* add check archive button for testing. */
   /* GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_LARGE_TOOLBAR);*/
   GtkWidget *toolbar = compose->toolbar;
@@ -488,7 +502,6 @@ void compose_created_cb(GObject *obj, gpointer data)
                    "button_press_event",
                    G_CALLBACK(check_attachement_cb), compose);
   gtk_widget_show_all(toolbar);
-#endif
   
 }
 
@@ -512,40 +525,53 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
 {
 
   Compose *compose = (Compose*)data;
+  GtkTreeModel *model = GTK_TREE_MODEL(compose->attach_store);
+  GtkTreeIter iter;
+  AttachInfo *ainfo;
+  gboolean valid;
+  gint nblank;
+  gint npasswd;
+  gchar* path;
+  gint npasstotal = 0;
+  gint npassok = 0;
+  gboolean bpasswd = FALSE;
+  GtkTextView *text;
+  GtkTextBuffer *buffer;
+  GtkTextIter tsiter, teiter;
+  gchar *pwtext;
+  GScanner *gscan;
+  GTokenValue gvalue;
+  GList *pwlist = NULL;
+  int index=0;
+  GTokenType gtoken;
+  gchar *msg=NULL;
+
+  gchar *msg=NULL;
+  gchar *passwd=NULL;
+  
   debug_print("[PLUGIN] compose_send_cb is called.\n");
 
   debug_print("Compose* compose:%p\n", compose);
   debug_print("gpointer compose:%p\n", data);
 
-  GtkTreeModel *model = GTK_TREE_MODEL(compose->attach_store);
-  GtkTreeIter iter;
-  AttachInfo *ainfo;
-  gboolean valid;
 
   debug_print("model:%p\n", model);
-  gint nblank;
-  gint npasswd;
   
   /* create working directory for unzip */
-  gchar* path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
+  path = g_strconcat(get_rc_dir(), G_DIR_SEPARATOR_S,
                             PLUGIN_DIR,G_DIR_SEPARATOR_S, "chkarchpasswd", NULL);
   g_mkdir_with_parents(path, 0);
   
-  gint npasstotal = 0;
-  gint npassok = 0;
-  gboolean bpasswd = FALSE;
 
   debug_print("text:%p\n", compose->text);
-  GtkTextView *text = GTK_TEXT_VIEW(compose->text);
+  text = GTK_TEXT_VIEW(compose->text);
   if (text==NULL){
     debug_print("text is NULL\n");
     return TRUE;
   }else{
     debug_print("text:%p\n", text);
   }
-  GtkTextBuffer *buffer;
   buffer = gtk_text_view_get_buffer(text);
-  GtkTextIter tsiter, teiter;
   if (buffer == NULL){
     debug_print("buffer is NULL\n");
     return TRUE;
@@ -553,8 +579,8 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
     debug_print("buffer:%p\n", buffer);
   }
   gtk_text_buffer_get_bounds(buffer, &tsiter, &teiter);
-  gchar *pwtext = gtk_text_buffer_get_text(buffer, &tsiter, &teiter, TRUE);
-  GScanner *gscan = g_scanner_new(NULL);
+  pwtext  = gtk_text_buffer_get_text(buffer, &tsiter, &teiter, TRUE);
+  gscan  = g_scanner_new(NULL);
   gscan->config->scan_identifier_1char=TRUE;
 
   if (pwtext==NULL){
@@ -565,11 +591,8 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
   }
 
   debug_print("scan loop\n");
-  GTokenValue gvalue;
-  GList *pwlist = NULL;
-  int index=0;
   while( g_scanner_eof(gscan) != TRUE){
-    GTokenType gtoken = g_scanner_get_next_token (gscan);
+    gtoken = g_scanner_get_next_token (gscan);
     switch (gtoken){
     case G_TOKEN_CHAR:
       gvalue = g_scanner_cur_value(gscan);
@@ -594,7 +617,6 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
   }
   
   /* get password candidate from text */
-  gchar *msg=NULL;
 
 #if 0
   GtkTreeView *treeview = GTK_TREE_VIEW(compose->attach_treeview);
@@ -626,9 +648,6 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
         debug_print("name:%s\n", ainfo->name);
         debug_print("size:%d\n", ainfo->size);
 
-
-        gchar *msg=NULL;
-        gchar *passwd=NULL;
         bpasswd=FALSE;
         /* input password for archive */
         nblank = extract_attachment(ainfo, path, NULL);
@@ -722,6 +741,9 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
 
 static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey)
 {
+  gboolean status;
+  GtkWidget *vbox;
+  
   debug_print("create_config_main_page\n");
   if (notebook == NULL){
     return NULL;
@@ -729,7 +751,7 @@ static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey)
   /* startup */
   if (pkey!=NULL){
   }
-  GtkWidget *vbox = gtk_vbox_new(FALSE, 6);
+  vbox = gtk_vbox_new(FALSE, 6);
 
   g_opt.chk_startup = gtk_check_button_new_with_label(_("Enable plugin on startup."));
   gtk_widget_show(g_opt.chk_startup);
@@ -741,11 +763,11 @@ static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey)
   g_opt.chk_passwd = gtk_check_button_new_with_label(_("Enable password validation for attachment."));
   gtk_box_pack_start(GTK_BOX(vbox), g_opt.chk_passwd, FALSE, FALSE, 0);
 
-  GtkWidget *general_lbl = gtk_label_new(_("General"));
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, general_lbl);
+  label = gtk_label_new(_("General"));
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
   gtk_widget_show_all(notebook);
 
-  gboolean status=g_key_file_get_boolean(pkey, CHKARCHPASSWD, "startup", NULL);
+  status=g_key_file_get_boolean(pkey, CHKARCHPASSWD, "startup", NULL);
   debug_print("startup:%s\n", status ? "TRUE" : "FALSE");
   if (status!=FALSE){
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(g_opt.chk_startup), TRUE);
@@ -769,34 +791,40 @@ static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey)
 /* about, copyright tab */
 static GtkWidget *create_config_about_page(GtkWidget *notebook, GKeyFile *pkey)
 {
+  GtkWidget *hbox, *vbox;
+  GtkTextBuffer *tbuffer;
+  GtkWidget *tview;
+  GtkWidget *misc;
+  GtkWidget *scrolled;
+  
   debug_print("create_config_about_page\n");
   if (notebook == NULL){
     return NULL;
   }
-  GtkWidget *hbox = gtk_hbox_new(TRUE, 6);
-  GtkWidget *vbox = gtk_vbox_new(FALSE, 6);
+  hbox = gtk_hbox_new(TRUE, 6);
+  vbox = gtk_vbox_new(FALSE, 6);
   gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, 6);
 
-  GtkWidget *misc = gtk_label_new("Chkarchpasswd");
+  misc = gtk_label_new("Chkarchpasswd");
   gtk_box_pack_start(GTK_BOX(vbox), misc, FALSE, TRUE, 6);
 
   misc = gtk_label_new(PLUGIN_DESC);
   gtk_box_pack_start(GTK_BOX(vbox), misc, FALSE, TRUE, 6);
 
   /* copyright */
-  GtkWidget *scrolled = gtk_scrolled_window_new(NULL, NULL);
+  scrolled = gtk_scrolled_window_new(NULL, NULL);
 
-  GtkTextBuffer *tbuffer = gtk_text_buffer_new(NULL);
+  tbuffer = gtk_text_buffer_new(NULL);
   gtk_text_buffer_set_text(tbuffer, _(g_copyright), strlen(g_copyright));
-  GtkWidget *tview = gtk_text_view_new_with_buffer(tbuffer);
+  tview = gtk_text_view_new_with_buffer(tbuffer);
   gtk_text_view_set_editable(GTK_TEXT_VIEW(tview), FALSE);
   gtk_container_add(GTK_CONTAINER(scrolled), tview);
     
   gtk_box_pack_start(GTK_BOX(vbox), scrolled, TRUE, TRUE, 6);
     
   /**/
-  GtkWidget *general_lbl = gtk_label_new(_("About"));
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), hbox, general_lbl);
+  label = gtk_label_new(_("About"));
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), hbox, label);
   gtk_widget_show_all(notebook);
   return NULL;
 }
