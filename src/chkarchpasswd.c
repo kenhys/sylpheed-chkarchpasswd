@@ -548,8 +548,11 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
   GTokenType gtoken;
   gchar *msg=NULL;
 
-  gchar *msg=NULL;
   gchar *passwd=NULL;
+  guint pwidx = 0;
+  gboolean bmatch = FALSE;
+  gboolean bcancel = TRUE;
+  gint val;
   
   debug_print("[PLUGIN] compose_send_cb is called.\n");
 
@@ -648,7 +651,7 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
         debug_print("file:%s\n", ainfo->file);
         debug_print("content_type:%s\n", ainfo->content_type);
         debug_print("name:%s\n", ainfo->name);
-        debug_print("size:%d\n", ainfo->size);
+        debug_print("size:%ld\n", ainfo->size);
 
         bpasswd=FALSE;
         /* input password for archive */
@@ -691,10 +694,8 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
             }
           }
           /* check pwlist */
-          guint pwidx = 0;
-          gboolean bmatch = FALSE;
           for (pwidx = 0; pwidx < g_list_length(pwlist); pwidx++){
-            gchar *passwd = g_list_nth_data(pwlist, pwidx);
+            passwd = g_list_nth_data(pwlist, pwidx);
               g_print("check password %s for %s\n",passwd, ainfo->name);
               nblank = extract_attachment(ainfo, path, passwd);
               if (nblank == 0x00000000){
@@ -711,12 +712,11 @@ static gboolean compose_send_cb(GObject *obj, gpointer data,
       }else{
       }
   }
-  gboolean bcancel = TRUE;
   if ( npasstotal > 0 && npassok == npasstotal){
     debug_print("[PLUGIN] password is not empty. sending mail...");
     bcancel = FALSE;
   }else if (npasstotal > 0 && npassok < npasstotal){
-    gint val = syl_plugin_alertpanel("", _("attachment password is empty. Do you want to send?"),
+    val = syl_plugin_alertpanel("", _("attachment password is empty. Do you want to send?"),
                                      GTK_STOCK_YES, GTK_STOCK_NO, NULL);
     if (val != 0){
       /* no is selected. */
