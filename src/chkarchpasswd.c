@@ -47,9 +47,7 @@
 
 #define CHKARCHPASSWD "chkarchpasswd"
 #define CHKARCHPASSWDRC "chkarchpasswdrc"
-#define _(String)   dgettext(CHKARCHPASSWD, String)
-#define N_(String)  gettext_noop(String)
-#define gettext_noop(String) (String)
+
 
 #define PLUGIN_NAME N_("Check attachment password Plug-in")
 #define PLUGIN_DESC N_("Check password of your mail attachment(*.zip), when you send mail.")
