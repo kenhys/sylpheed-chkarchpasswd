@@ -62,7 +62,9 @@ static SylPluginInfo info = {
 };
 
 
+#if 0
 static void exec_chkarchpasswd_cb(GObject *obj, FolderItem *item, const gchar *file, guint num);
+#endif
 static void exec_chkarchpasswd_menu_cb(void);
 static void exec_chkarchpasswd_onoff_cb(void);
 static void compose_created_cb(GObject *obj, gpointer compose);
