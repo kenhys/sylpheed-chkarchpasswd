@@ -745,7 +745,8 @@ static GtkWidget *create_config_main_page(GtkWidget *notebook, GKeyFile *pkey)
 {
   gboolean status;
   GtkWidget *vbox;
-  
+  GtkWidget *label;
+
   debug_print("create_config_main_page\n");
   if (notebook == NULL){
     return NULL;
@@ -798,7 +799,8 @@ static GtkWidget *create_config_about_page(GtkWidget *notebook, GKeyFile *pkey)
   GtkWidget *tview;
   GtkWidget *misc;
   GtkWidget *scrolled;
-  
+  GtkWidget *label;
+
   debug_print("create_config_about_page\n");
   if (notebook == NULL){
     return NULL;
@@ -834,8 +836,8 @@ static GtkWidget *create_config_about_page(GtkWidget *notebook, GKeyFile *pkey)
 static gint extract_attachment(AttachInfo *ainfo, gchar *dest, gchar *passwd)
 {
   gint nresult = 0;
-  gchar buf[1024];
 #if defined(G_OS_WIN32)
+  gchar buf[1024];
   DWORD dwSize = 0;
 #endif
   gchar *com = NULL;
